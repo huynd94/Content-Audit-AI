@@ -19,13 +19,20 @@ Doi lai truoc khi deploy that.
 ## Cach 1: Docker
 
 1. Cai `docker` va `docker compose` tren VPS ARM64.
-2. Edit file env Docker:
+2. Clone dung branch deploy:
+
+```bash
+git clone --branch codex/remove-replit https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
+cd /opt/content-audit-ai
+```
+
+3. Edit file env Docker:
 
 ```bash
 nano .env.production.docker
 ```
 
-3. Dien it nhat cac bien sau trong `.env.production.docker`:
+4. Dien it nhat cac bien sau trong `.env.production.docker`:
 
 ```bash
 DATABASE_URL=postgresql://content_audit_ai:change-me@db:5432/content_audit_ai
@@ -35,19 +42,26 @@ TRUST_PROXY=true
 PORT=3000
 ```
 
-4. Build va chay:
+5. Build va chay:
 
 ```bash
 docker compose -f docker-compose.production.yml up -d --build
 ```
 
-5. Neu can day schema len database:
+6. Neu can day schema len database:
 
 ```bash
 docker compose -f docker-compose.production.yml exec app pnpm --filter @workspace/db run push
 ```
 
-6. Dat Nginx proxy vao `127.0.0.1:3000` bang file `deploy/nginx/content-audit-ai.conf`, sau do reload Nginx.
+7. Kiem tra logs:
+
+```bash
+docker compose -f docker-compose.production.yml ps
+docker compose -f docker-compose.production.yml logs -f app
+```
+
+8. Dat Nginx proxy vao `127.0.0.1:3000` bang file `deploy/nginx/content-audit-ai.conf`, sau do reload Nginx.
 
 App backend se phuc vu API va file frontend build san tren cung cong `PORT`. Docker compose production map cong vao `127.0.0.1` de Nginx o host la diem vao duy nhat.
 

@@ -128,6 +128,32 @@ corepack pnpm --filter @workspace/api-server run dev
 
 Two production flows are prepared in this branch:
 
+### VPS + Docker from `codex/remove-replit`
+
+For a fresh VPS deployment directly from this branch:
+
+```bash
+git clone --branch codex/remove-replit https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
+cd /opt/content-audit-ai
+cp .env.production.docker .env.production.docker.local
+```
+
+Edit `.env.production.docker.local` with your real values, then point Compose to that file:
+
+```bash
+cp .env.production.docker.local .env.production.docker
+docker compose -f docker-compose.production.yml up -d --build
+docker compose -f docker-compose.production.yml exec app pnpm --filter @workspace/db run push
+```
+
+Recommended production flow:
+
+1. Clone the `codex/remove-replit` branch into `/opt/content-audit-ai`.
+2. Set `OPENAI_API_KEY`, `CORS_ORIGIN`, and Docker database credentials in `.env.production.docker`.
+3. Start the stack with `docker compose -f docker-compose.production.yml up -d --build`.
+4. Push the schema with `pnpm --filter @workspace/db run push` inside the app container.
+5. Put Nginx in front of `127.0.0.1:3000` using `deploy/nginx/content-audit-ai.conf`.
+
 ### Docker
 
 - Edit `.env.production.docker`

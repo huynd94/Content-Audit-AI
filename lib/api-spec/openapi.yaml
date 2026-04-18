@@ -55,6 +55,15 @@ paths:
           schema:
             type: ["integer", "null"]
         - in: query
+          name: status
+          schema:
+            type: ["string", "null"]
+            enum: [pending, analyzing, completed, failed, null]
+        - in: query
+          name: q
+          schema:
+            type: ["string", "null"]
+        - in: query
           name: limit
           schema:
             type: ["integer", "null"]

@@ -1,159 +1,205 @@
-import { useState } from "react";
-import { useListReviews, useListCategories, useDeleteReview, getListReviewsQueryKey } from "@workspace/api-client-react";
+import { useDeferredValue, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getListReviewsQueryKey, useDeleteReview, useListCategories, useListReviews } from "@workspace/api-client-react";
+import { ExternalLink, Filter, LoaderCircle, Search, Trash2 } from "lucide-react";
 import { Link } from "wouter";
-import { CheckCircle, Clock, Loader2, XCircle, Trash2, ExternalLink, ChevronRight, Filter } from "lucide-react";
+import { ReviewStatusBadge } from "@/components/reviews/ReviewStatusBadge";
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "completed") return <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700"><CheckCircle className="w-3 h-3" />Hoàn thành</span>;
-  if (status === "analyzing") return <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"><Loader2 className="w-3 h-3 animate-spin" />Đang phân tích</span>;
-  if (status === "failed") return <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700"><XCircle className="w-3 h-3" />Lỗi</span>;
-  return <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"><Clock className="w-3 h-3" />Chờ</span>;
-}
+type ReviewStatusFilter = "all" | "pending" | "analyzing" | "completed" | "failed";
 
-function ScorePill({ score, label }: { score: number; label: string }) {
-  const color = score >= 90 ? "text-blue-600" : score >= 75 ? "text-green-600" : score >= 50 ? "text-yellow-600" : "text-red-600";
-  return (
-    <div className="flex flex-col items-center">
-      <span className={`text-base font-bold ${color}`}>{score}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-  );
+function getHostname(url: string) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
 }
 
 export default function HistoryPage() {
-  const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const queryClient = useQueryClient();
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<ReviewStatusFilter>("all");
+  const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
-  const { data: reviews, isLoading } = useListReviews();
   const { data: categories } = useListCategories();
+  const { data: reviews, isLoading } = useListReviews({
+    categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+    status: selectedStatus === "all" ? undefined : selectedStatus,
+    q: deferredSearch.trim() || undefined,
+    limit: 50,
+  });
   const deleteReview = useDeleteReview();
 
-  const handleDelete = async (id: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!confirm("Bạn có chắc muốn xóa review này?")) return;
+  const handleDelete = async (id: number, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!confirm("Ban co chac muon xoa review nay?")) {
+      return;
+    }
+
     await deleteReview.mutateAsync({ id });
     queryClient.invalidateQueries({ queryKey: getListReviewsQueryKey() });
   };
 
-  const filtered = reviews?.filter((r) => {
-    if (selectedCategory !== "all" && r.categoryId !== selectedCategory) return false;
-    if (selectedStatus !== "all" && r.status !== selectedStatus) return false;
-    return true;
-  }) ?? [];
-
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold">Lịch sử phân tích</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} kết quả</p>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
+      <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60 backdrop-blur-xl">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Review log</div>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-950">Lich su audit</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Tim nhanh theo domain, category, trang thai, va mo lai cac report can sua tiep.
+            </p>
+          </div>
+
+          <Link href="/" className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+            Audit moi
+          </Link>
         </div>
 
-        <Link href="/" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
-          Phân tích mới
-        </Link>
-      </div>
+        <div className="mt-6 grid gap-3 lg:grid-cols-[1.4fr_0.7fr_0.7fr]">
+          <label className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50/80 px-4 py-3">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Tim theo domain, URL, category..."
+              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+            />
+          </label>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 p-4 bg-card border border-border rounded-xl">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Filter className="w-4 h-4" />
-          Lọc:
+          <label className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50/80 px-4 py-3">
+            <Filter className="h-4 w-4 text-slate-400" />
+            <select
+              value={selectedCategory === "all" ? "all" : String(selectedCategory)}
+              onChange={(event) => setSelectedCategory(event.target.value === "all" ? "all" : parseInt(event.target.value, 10))}
+              data-testid="filter-category"
+              className="w-full bg-transparent text-sm outline-none"
+            >
+              <option value="all">Tat ca category</option>
+              {categories?.map((category) => (
+                <option key={category.id} value={String(category.id)}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50/80 px-4 py-3">
+            <Filter className="h-4 w-4 text-slate-400" />
+            <select
+              value={selectedStatus}
+              onChange={(event) => setSelectedStatus(event.target.value as ReviewStatusFilter)}
+              data-testid="filter-status"
+              className="w-full bg-transparent text-sm outline-none"
+            >
+              <option value="all">Tat ca trang thai</option>
+              <option value="completed">Hoan thanh</option>
+              <option value="analyzing">Dang phan tich</option>
+              <option value="pending">Cho xu ly</option>
+              <option value="failed">Loi</option>
+            </select>
+          </label>
         </div>
-
-        <select
-          value={selectedCategory === "all" ? "all" : String(selectedCategory)}
-          onChange={(e) => setSelectedCategory(e.target.value === "all" ? "all" : parseInt(e.target.value, 10))}
-          data-testid="filter-category"
-          className="px-3 py-1.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="all">Tất cả danh mục</option>
-          {categories?.map((c) => (
-            <option key={c.id} value={String(c.id)}>{c.name}</option>
-          ))}
-        </select>
-
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          data-testid="filter-status"
-          className="px-3 py-1.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="all">Tất cả trạng thái</option>
-          <option value="completed">Hoàn thành</option>
-          <option value="analyzing">Đang phân tích</option>
-          <option value="pending">Chờ</option>
-          <option value="failed">Lỗi</option>
-        </select>
-      </div>
+      </section>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="rounded-[2rem] border border-slate-200 bg-white/80 p-6 shadow-sm">
+              <div className="h-5 w-48 animate-pulse rounded bg-slate-200" />
+              <div className="mt-4 h-4 w-full animate-pulse rounded bg-slate-100" />
+              <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+            </div>
+          ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <div className="text-4xl mb-3">📋</div>
-          <p>Chưa có review nào phù hợp với bộ lọc.</p>
-          <Link href="/" className="text-primary hover:underline text-sm mt-2 inline-block">Tạo review mới</Link>
+      ) : !reviews || reviews.length === 0 ? (
+        <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white/75 p-12 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+            <LoaderCircle className="h-6 w-6" />
+          </div>
+          <h2 className="mt-4 text-xl font-semibold text-slate-900">Khong tim thay review phu hop</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Thu xoa bot bo loc hoac bat dau mot audit moi de tao du lieu dau vao.
+          </p>
+          <Link href="/" className="mt-6 inline-flex items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-5 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+            Tao audit moi
+          </Link>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((review) => {
-            const result = review.result as Record<string, number> | null;
+        <div className="grid gap-4">
+          {reviews.map((review) => {
+            const result = review.result as Record<string, number> | undefined;
+
             return (
               <Link
                 key={review.id}
                 href={`/reviews/${review.id}`}
-                className="block bg-card border border-border rounded-xl p-5 hover:shadow-sm transition-all group"
                 data-testid={`history-item-${review.id}`}
+                className="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-md shadow-slate-100/50 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg"
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="text-sm font-medium">{review.categoryName ?? "—"}</span>
-                      <StatusBadge status={review.status} />
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="text-lg font-medium text-slate-950">{review.categoryName ?? "Chua gan category"}</div>
+                      <ReviewStatusBadge status={review.status} />
                     </div>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+                        {getHostname(review.url)}
+                      </span>
                       <span className="truncate">{review.url}</span>
                       <a
                         href={review.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="shrink-0 hover:text-primary transition-colors"
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        Mo link
+                        <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+
+                    <div className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-400">
                       {new Date(review.createdAt).toLocaleDateString("vi-VN", {
-                        day: "2-digit", month: "2-digit", year: "numeric",
-                        hour: "2-digit", minute: "2-digit"
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </div>
                   </div>
 
-                  {result && review.status === "completed" && (
-                    <div className="flex items-center gap-5 shrink-0">
-                      <ScorePill score={result.seoScore ?? 0} label="SEO" />
-                      <ScorePill score={result.adsScore ?? 0} label="Ads" />
-                      <ScorePill score={result.overallScore ?? 0} label="Tổng" />
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {review.status === "completed" && result && (
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { label: "SEO", value: result.seoScore },
+                          { label: "Ads", value: result.adsScore },
+                          { label: "Tong", value: result.overallScore },
+                        ].map((item) => (
+                          <div key={item.label} className="min-w-24 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-center">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{item.label}</div>
+                            <div className="mt-2 text-2xl font-semibold text-slate-950">{item.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={(e) => handleDelete(review.id, e)}
+                      onClick={(event) => handleDelete(review.id, event)}
                       data-testid={`delete-${review.id}`}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               </Link>

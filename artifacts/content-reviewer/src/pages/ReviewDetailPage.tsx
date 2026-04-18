@@ -1,9 +1,23 @@
-import { useParams, useLocation } from "wouter";
-import { useGetReview, getGetReviewQueryKey, useDeleteReview, getListReviewsQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ExternalLink, Trash2, AlertCircle, AlertTriangle, Info, Lightbulb, ChevronDown, ChevronUp, CheckCircle, Clock, Loader2, XCircle } from "lucide-react";
-import { Link } from "wouter";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getGetReviewQueryKey, getListReviewsQueryKey, useDeleteReview, useGetReview } from "@workspace/api-client-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  ExternalLink,
+  Info,
+  Lightbulb,
+  LoaderCircle,
+  ShieldAlert,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  XCircle,
+} from "lucide-react";
+import { Link, useLocation, useParams } from "wouter";
+import { ReviewStatusBadge } from "@/components/reviews/ReviewStatusBadge";
 
 type IssueSeverity = "critical" | "major" | "minor" | "suggestion";
 type IssueType = "seo" | "google_ads" | "google_shopping" | "gdn" | "content_quality" | "policy_violation";
@@ -17,96 +31,85 @@ interface ReviewIssue {
   recommendation: string;
 }
 
-const SEVERITY_CONFIG: Record<IssueSeverity, { label: string; color: string; bg: string; icon: typeof AlertCircle }> = {
-  critical: { label: "Nghiêm trọng", color: "text-red-700", bg: "bg-red-50 border-red-200", icon: AlertCircle },
-  major: { label: "Quan trọng", color: "text-orange-700", bg: "bg-orange-50 border-orange-200", icon: AlertTriangle },
-  minor: { label: "Nhỏ", color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200", icon: Info },
-  suggestion: { label: "Gợi ý", color: "text-blue-700", bg: "bg-blue-50 border-blue-200", icon: Lightbulb },
+const SEVERITY_CONFIG: Record<IssueSeverity, { label: string; tone: string; icon: typeof AlertCircle }> = {
+  critical: { label: "Nghiem trong", tone: "border-rose-200 bg-rose-50 text-rose-700", icon: AlertCircle },
+  major: { label: "Quan trong", tone: "border-amber-200 bg-amber-50 text-amber-700", icon: AlertTriangle },
+  minor: { label: "Nho", tone: "border-yellow-200 bg-yellow-50 text-yellow-700", icon: Info },
+  suggestion: { label: "Goi y", tone: "border-sky-200 bg-sky-50 text-sky-700", icon: Lightbulb },
 };
 
-const TYPE_CONFIG: Record<IssueType, { label: string; color: string }> = {
-  seo: { label: "SEO", color: "bg-purple-100 text-purple-700" },
-  google_ads: { label: "Google Ads", color: "bg-blue-100 text-blue-700" },
-  google_shopping: { label: "Google Shopping", color: "bg-green-100 text-green-700" },
-  gdn: { label: "GDN", color: "bg-teal-100 text-teal-700" },
-  content_quality: { label: "Chất lượng nội dung", color: "bg-gray-100 text-gray-700" },
-  policy_violation: { label: "Vi phạm chính sách", color: "bg-red-100 text-red-700" },
+const TYPE_LABELS: Record<IssueType, string> = {
+  seo: "SEO",
+  google_ads: "Google Ads",
+  google_shopping: "Google Shopping",
+  gdn: "GDN",
+  content_quality: "Chat luong noi dung",
+  policy_violation: "Vi pham chinh sach",
 };
 
-function ScoreGauge({ score, label }: { score: number; label: string }) {
-  const color = score >= 90 ? "#3b82f6" : score >= 75 ? "#22c55e" : score >= 50 ? "#f59e0b" : "#ef4444";
-  const r = 36;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (score / 100) * circ;
+function ScoreCard({ score, label }: { score: number; label: string }) {
+  const tone = score >= 90
+    ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+    : score >= 75
+      ? "text-sky-700 bg-sky-50 border-sky-200"
+      : score >= 50
+        ? "text-amber-700 bg-amber-50 border-amber-200"
+        : "text-rose-700 bg-rose-50 border-rose-200";
 
   return (
-    <div className="flex flex-col items-center gap-2 p-4 bg-card border border-border rounded-xl">
-      <svg width={88} height={88} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={44} cy={44} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={7} />
-        <circle
-          cx={44} cy={44} r={r}
-          fill="none" stroke={color} strokeWidth={7}
-          strokeDasharray={circ} strokeDashoffset={offset}
-          strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 0.7s ease" }}
-        />
-        <text x={44} y={44} textAnchor="middle" dominantBaseline="middle"
-          style={{ transform: "rotate(90deg)", transformOrigin: "44px 44px", fill: color, fontWeight: 800, fontSize: 22 }}>
-          {score}
-        </text>
-      </svg>
-      <span className="text-xs text-muted-foreground font-medium text-center leading-tight">{label}</span>
+    <div className={`rounded-3xl border px-4 py-4 ${tone}`}>
+      <div className="text-[11px] uppercase tracking-[0.18em]">{label}</div>
+      <div className="mt-3 text-4xl font-semibold">{score}</div>
     </div>
   );
 }
 
 function IssueCard({ issue }: { issue: ReviewIssue }) {
-  const [expanded, setExpanded] = useState(false);
-  const severity = SEVERITY_CONFIG[issue.severity] ?? SEVERITY_CONFIG.minor;
-  const SeverityIcon = severity.icon;
-  const type = TYPE_CONFIG[issue.type];
+  const [expanded, setExpanded] = useState(issue.severity === "critical");
+  const config = SEVERITY_CONFIG[issue.severity];
+  const Icon = config.icon;
 
   return (
-    <div className={`border rounded-lg overflow-hidden ${severity.bg}`}>
+    <div className={`rounded-3xl border ${config.tone}`}>
       <button
         type="button"
-        className="w-full flex items-start gap-3 p-4 text-left hover:brightness-95 transition-all"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => setExpanded((value) => !value)}
         data-testid={`issue-${issue.type}-${issue.severity}`}
+        className="flex w-full items-start gap-3 p-4 text-left"
       >
-        <SeverityIcon className={`w-4 h-4 mt-0.5 shrink-0 ${severity.color}`} />
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${type?.color ?? "bg-gray-100 text-gray-700"}`}>
-              {type?.label ?? issue.type}
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/70">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+              {TYPE_LABELS[issue.type]}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${severity.bg} ${severity.color}`}>
-              {severity.label}
+            <span className="rounded-full border border-current/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+              {config.label}
             </span>
             {issue.location && (
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+              <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-500">
                 {issue.location}
               </span>
             )}
           </div>
-          <div className={`font-medium text-sm ${severity.color}`}>{issue.title}</div>
+          <div className="mt-3 text-base font-medium">{issue.title}</div>
         </div>
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-        )}
+        {expanded ? <ChevronUp className="mt-1 h-4 w-4 shrink-0" /> : <ChevronDown className="mt-1 h-4 w-4 shrink-0" />}
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-current/10">
-          <div>
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 mt-3">Vấn đề</div>
-            <p className="text-sm">{issue.description}</p>
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Cách khắc phục</div>
-            <p className="text-sm">{issue.recommendation}</p>
+        <div className="border-t border-current/10 px-4 pb-4 pt-4">
+          <div className="grid gap-4 rounded-2xl bg-white/60 p-4 text-sm text-slate-700 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Van de</div>
+              <p className="mt-2 leading-6">{issue.description}</p>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Huong xu ly</div>
+              <p className="mt-2 leading-6">{issue.recommendation}</p>
+            </div>
           </div>
         </div>
       )}
@@ -130,11 +133,13 @@ export default function ReviewDetailPage() {
       },
     },
   });
-
   const deleteReview = useDeleteReview();
 
   const handleDelete = async () => {
-    if (!confirm("Bạn có chắc muốn xóa review này?")) return;
+    if (!confirm("Ban co chac muon xoa review nay?")) {
+      return;
+    }
+
     await deleteReview.mutateAsync({ id });
     queryClient.invalidateQueries({ queryKey: getListReviewsQueryKey() });
     navigate("/");
@@ -142,18 +147,26 @@ export default function ReviewDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="mx-auto flex min-h-[60vh] max-w-6xl items-center justify-center px-4 py-10">
+        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!review) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-lg font-semibold mb-2">Không tìm thấy review</h2>
-        <Link href="/" className="text-primary hover:underline text-sm">Quay về trang chủ</Link>
+      <div className="mx-auto max-w-3xl px-4 py-14">
+        <div className="rounded-[2rem] border border-white/70 bg-white/85 p-10 text-center shadow-lg shadow-slate-100/60">
+          <AlertCircle className="mx-auto h-10 w-10 text-slate-400" />
+          <h1 className="mt-4 text-2xl font-semibold text-slate-950">Khong tim thay review</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            URL nay co the da bi xoa hoac id khong con hop le.
+          </p>
+          <Link href="/" className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Quay ve trang chu
+          </Link>
+        </div>
       </div>
     );
   }
@@ -172,136 +185,152 @@ export default function ReviewDetailPage() {
     suggestionCount: number;
   } | null;
 
-  // Group issues by type
   const groupedIssues: Partial<Record<IssueType, ReviewIssue[]>> = {};
   result?.issues?.forEach((issue) => {
-    if (!groupedIssues[issue.type]) groupedIssues[issue.type] = [];
+    if (!groupedIssues[issue.type]) {
+      groupedIssues[issue.type] = [];
+    }
+
     groupedIssues[issue.type]!.push(issue);
   });
 
+  const topPriorityIssues = result?.issues.filter((issue) => issue.severity === "critical" || issue.severity === "major") ?? [];
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-start gap-3">
-          <Link href="/" className="mt-1 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium text-muted-foreground">{review.categoryName}</span>
-              {review.status === "completed" && <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700"><CheckCircle className="w-3 h-3" />Hoàn thành</span>}
-              {review.status === "analyzing" && <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"><Loader2 className="w-3 h-3 animate-spin" />Đang phân tích...</span>}
-              {review.status === "failed" && <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700"><XCircle className="w-3 h-3" />Lỗi</span>}
-              {review.status === "pending" && <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"><Clock className="w-3 h-3" />Chờ</span>}
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
+      <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60 backdrop-blur-xl">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <Link href="/history" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-primary">
+              <ArrowLeft className="h-4 w-4" />
+              Quay lai lich su
+            </Link>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="text-3xl font-semibold text-slate-950">{review.categoryName ?? "Chua gan category"}</div>
+              <ReviewStatusBadge status={review.status} />
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground truncate max-w-[400px]">{review.url}</span>
-              <a href={review.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                <ExternalLink className="w-3.5 h-3.5" />
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+              <span className="truncate">{review.url}</span>
+              <a href={review.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                Mo link
+                <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={handleDelete}
-          data-testid="button-delete"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-destructive/30 text-destructive text-xs hover:bg-destructive/10 transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Xóa
-        </button>
-      </div>
+          <button
+            onClick={handleDelete}
+            data-testid="button-delete"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-100"
+          >
+            <Trash2 className="h-4 w-4" />
+            Xoa review
+          </button>
+        </div>
+      </section>
 
       {(review.status === "analyzing" || review.status === "pending") && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-500 mx-auto mb-3" />
-          <p className="text-blue-700 font-medium">Đang phân tích nội dung...</p>
-          <p className="text-blue-500 text-sm mt-1">Trang sẽ tự động cập nhật khi hoàn thành</p>
-        </div>
+        <section className="rounded-[2rem] border border-sky-200 bg-sky-50 p-8 text-center text-sky-700">
+          <LoaderCircle className="mx-auto h-10 w-10 animate-spin" />
+          <h2 className="mt-4 text-xl font-semibold">Dang phan tich noi dung</h2>
+          <p className="mt-2 text-sm leading-6 text-sky-600">
+            Trang nay tu dong refresh de cap nhat ket qua khi AI hoan tat.
+          </p>
+        </section>
       )}
 
       {review.status === "failed" && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <XCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
-          <p className="text-red-700 font-medium">Phân tích thất bại</p>
-          <p className="text-red-500 text-sm mt-1">Có lỗi xảy ra trong quá trình phân tích. Vui lòng thử lại.</p>
-        </div>
+        <section className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 text-center text-rose-700">
+          <XCircle className="mx-auto h-10 w-10" />
+          <h2 className="mt-4 text-xl font-semibold">Phan tich that bai</h2>
+          <p className="mt-2 text-sm leading-6 text-rose-600">
+            Kiem tra lai URL, ket noi mang hoac key OpenAI trong env roi chay lai.
+          </p>
+        </section>
       )}
 
       {review.status === "completed" && result && (
-        <>
-          {/* Scores */}
-          <div className="mb-6">
-            <h2 className="font-semibold text-sm mb-3 text-muted-foreground uppercase tracking-wide">Điểm số tổng quan</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <ScoreGauge score={result.overallScore} label="Tổng thể" />
-              <ScoreGauge score={result.seoScore} label="SEO" />
-              <ScoreGauge score={result.adsScore} label="Google Ads" />
-              <ScoreGauge score={result.shoppingScore} label="Shopping" />
-              <ScoreGauge score={result.gdnScore} label="GDN" />
+        <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+          <div className="space-y-6">
+            <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60">
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Executive summary</div>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Tong ket nhanh</h2>
+              <p className="mt-4 text-sm leading-7 text-slate-600">{result.summary}</p>
             </div>
-          </div>
 
-          {/* Summary */}
-          <div className="bg-card border border-border rounded-xl p-5 mb-6">
-            <h2 className="font-semibold text-sm mb-2">Tóm tắt đánh giá</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{result.summary}</p>
-            <div className="grid grid-cols-4 gap-3 mt-4">
-              {[
-                { label: "Nghiêm trọng", count: result.criticalCount, color: "text-red-600 bg-red-50" },
-                { label: "Quan trọng", count: result.majorCount, color: "text-orange-600 bg-orange-50" },
-                { label: "Nhỏ", count: result.minorCount, color: "text-yellow-600 bg-yellow-50" },
-                { label: "Gợi ý", count: result.suggestionCount, color: "text-blue-600 bg-blue-50" },
-              ].map(({ label, count, color }) => (
-                <div key={label} className={`rounded-lg p-3 text-center ${color}`}>
-                  <div className="text-2xl font-bold">{count}</div>
-                  <div className="text-xs">{label}</div>
+            {topPriorityIssues.length > 0 && (
+              <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6">
+                <div className="flex items-center gap-3 text-amber-800">
+                  <ShieldAlert className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">Muc uu tien cao</h3>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Issues */}
-          <div>
-            <h2 className="font-semibold text-sm mb-3 text-muted-foreground uppercase tracking-wide">Danh sách vấn đề</h2>
-
-            {result.issues.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <CheckCircle className="w-10 h-10 mx-auto mb-2 text-green-500" />
-                Tuyệt vời! Không tìm thấy vấn đề nào.
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {(Object.keys(groupedIssues) as IssueType[]).map((type) => {
-                  const issues = groupedIssues[type] ?? [];
-                  const typeConfig = TYPE_CONFIG[type];
-                  return (
-                    <div key={type}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${typeConfig?.color ?? "bg-gray-100 text-gray-700"}`}>
-                          {typeConfig?.label ?? type}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{issues.length} vấn đề</span>
-                      </div>
-                      <div className="space-y-2">
-                        {issues
-                          .sort((a, b) => {
-                            const order = { critical: 0, major: 1, minor: 2, suggestion: 3 };
-                            return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
-                          })
-                          .map((issue, i) => (
-                            <IssueCard key={`${type}-${i}`} issue={issue} />
-                          ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                <p className="mt-2 text-sm leading-6 text-amber-700">
+                  Co {topPriorityIssues.length} issue critical/major. Nen xu ly nhom nay truoc khi toi uu chi tiet phan con lai.
+                </p>
               </div>
             )}
+
+            <div className="space-y-6">
+              {(Object.keys(groupedIssues) as IssueType[]).map((type) => {
+                const issues = groupedIssues[type] ?? [];
+
+                return (
+                  <section key={type} className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
+                        {TYPE_LABELS[type]}
+                      </span>
+                      <span className="text-sm text-slate-500">{issues.length} issue</span>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {issues
+                        .slice()
+                        .sort((left, right) => {
+                          const order = { critical: 0, major: 1, minor: 2, suggestion: 3 };
+                          return order[left.severity] - order[right.severity];
+                        })
+                        .map((issue, index) => (
+                          <IssueCard key={`${type}-${index}`} issue={issue} />
+                        ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           </div>
-        </>
+
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[2rem] border border-slate-200/80 bg-slate-950 p-6 text-white shadow-lg shadow-slate-200/70">
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Scoreboard</div>
+              <div className="mt-4 grid gap-3">
+                <ScoreCard score={result.overallScore} label="Tong the" />
+                <div className="grid grid-cols-2 gap-3">
+                  <ScoreCard score={result.seoScore} label="SEO" />
+                  <ScoreCard score={result.adsScore} label="Ads" />
+                  <ScoreCard score={result.shoppingScore} label="Shopping" />
+                  <ScoreCard score={result.gdnScore} label="GDN" />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60">
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Issue mix</div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {[
+                  { label: "Critical", value: result.criticalCount, tone: "bg-rose-50 text-rose-700" },
+                  { label: "Major", value: result.majorCount, tone: "bg-amber-50 text-amber-700" },
+                  { label: "Minor", value: result.minorCount, tone: "bg-yellow-50 text-yellow-700" },
+                  { label: "Goi y", value: result.suggestionCount, tone: "bg-sky-50 text-sky-700" },
+                ].map((item) => (
+                  <div key={item.label} className={`rounded-3xl px-4 py-4 text-center ${item.tone}`}>
+                    <div className="text-[11px] uppercase tracking-[0.18em]">{item.label}</div>
+                    <div className="mt-3 text-3xl font-semibold">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+        </section>
       )}
     </div>
   );

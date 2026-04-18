@@ -212,40 +212,39 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
-      <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-xl shadow-sky-100/50 backdrop-blur-xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+      <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-xl shadow-sky-100/50 backdrop-blur-xl md:p-7">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
             <Sparkles className="h-3.5 w-3.5" />
             Luồng kiểm duyệt
           </div>
 
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
-            Kiểm duyệt một landing page theo SEO, Google Ads, Shopping và GDN trong cùng một luồng.
+          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 md:text-[3.2rem] md:leading-[1.02]">
+            Kiểm duyệt landing page theo SEO, Ads, Shopping và GDN trong một luồng.
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-            Nhập URL, chọn danh mục và nhận báo cáo có điểm số, mức độ ưu tiên cùng hướng sửa cụ thể.
-            Giao diện tập trung vào một việc duy nhất: chọn đúng loại sản phẩm và ra quyết định sửa nội dung nhanh.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-[15px]">
+            Nhập URL, chọn đúng danh mục sản phẩm và nhận ngay báo cáo có điểm số, mức độ ưu tiên cùng hướng sửa cụ thể.
           </p>
 
           {statCards.length > 0 && (
-            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               {statCards.map((card) => (
-                <div key={card.label} className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4">
-                  <div className="flex items-center justify-between text-slate-500">
-                    <span className="text-xs font-medium uppercase tracking-[0.18em]">{card.label}</span>
-                    <card.icon className="h-4 w-4" />
+                <div key={card.label} className="rounded-[1.4rem] border border-slate-200/80 bg-slate-50/80 p-3">
+                  <div className="flex items-center justify-between gap-3 text-slate-500">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.18em]">{card.label}</span>
+                    <card.icon className="h-3.5 w-3.5 shrink-0" />
                   </div>
-                  <div className="mt-3 text-3xl font-semibold text-slate-950">{card.value}</div>
+                  <div className="mt-2 text-2xl font-semibold leading-none text-slate-950">{card.value}</div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="rounded-[2rem] border border-slate-200/80 bg-slate-950 p-8 text-white shadow-xl shadow-slate-200/60">
-          <div className="text-sm uppercase tracking-[0.2em] text-sky-300">Cách ứng dụng vận hành</div>
-          <div className="mt-3 text-2xl font-semibold">3 bước để ra quyết định sửa nội dung</div>
-          <div className="mt-6 space-y-4">
+        <div className="rounded-[2rem] border border-slate-200/80 bg-slate-950 p-6 text-white shadow-xl shadow-slate-200/60 md:p-7">
+          <div className="text-[11px] uppercase tracking-[0.24em] text-sky-300">Cách ứng dụng vận hành</div>
+          <div className="mt-2 text-[1.75rem] font-semibold leading-tight">3 bước để ra quyết định sửa nội dung</div>
+          <div className="mt-4 space-y-3">
             {[
               {
                 icon: Link2,
@@ -263,14 +262,14 @@ export default function HomePage() {
                 description: "Báo cáo trả về mức độ nghiêm trọng, điểm số và danh sách việc cần làm ngay.",
               },
             ].map((item) => (
-              <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-3.5">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-sky-300">
-                    <item.icon className="h-5 w-5" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-sky-300">
+                    <item.icon className="h-4.5 w-4.5" />
                   </div>
                   <div>
                     <div className="font-medium">{item.title}</div>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">{item.description}</p>
+                    <p className="mt-1 text-sm leading-5 text-slate-300">{item.description}</p>
                   </div>
                 </div>
               </div>

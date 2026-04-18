@@ -1,9 +1,10 @@
 import { useDeferredValue, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getListReviewsQueryKey, useDeleteReview, useListCategories, useListReviews } from "@workspace/api-client-react";
+import { getListCategoriesQueryKey, getListReviewsQueryKey, useDeleteReview, useListCategories, useListReviews } from "@workspace/api-client-react";
 import { ExternalLink, Filter, LoaderCircle, Search, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { ReviewStatusBadge } from "@/components/reviews/ReviewStatusBadge";
+import { DEFAULT_SYSTEM_CATEGORIES } from "@/lib/defaultCategories";
 
 type ReviewStatusFilter = "all" | "pending" | "analyzing" | "completed" | "failed";
 
@@ -22,14 +23,35 @@ export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
 
-  const { data: categories } = useListCategories();
-  const { data: reviews, isLoading } = useListReviews({
-    categoryId: selectedCategory === "all" ? undefined : selectedCategory,
-    status: selectedStatus === "all" ? undefined : selectedStatus,
-    q: deferredSearch.trim() || undefined,
-    limit: 50,
+  const { data: categories } = useListCategories({
+    query: {
+      queryKey: getListCategoriesQueryKey(),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
   });
+  const { data: reviews, isLoading } = useListReviews(
+    {
+      categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+      status: selectedStatus === "all" ? undefined : selectedStatus,
+      q: deferredSearch.trim() || undefined,
+      limit: 50,
+    },
+    {
+      query: {
+        queryKey: getListReviewsQueryKey({
+          categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+          status: selectedStatus === "all" ? undefined : selectedStatus,
+          q: deferredSearch.trim() || undefined,
+          limit: 50,
+        }),
+        retry: false,
+        refetchOnWindowFocus: false,
+      },
+    },
+  );
   const deleteReview = useDeleteReview();
+  const effectiveCategories = categories && categories.length > 0 ? categories : DEFAULT_SYSTEM_CATEGORIES;
 
   const handleDelete = async (id: number, event: React.MouseEvent) => {
     event.preventDefault();
@@ -80,7 +102,7 @@ export default function HistoryPage() {
               className="w-full bg-transparent text-sm outline-none"
             >
               <option value="all">Tất cả danh mục</option>
-              {categories?.map((category) => (
+              {effectiveCategories.map((category) => (
                 <option key={category.id} value={String(category.id)}>
                   {category.name}
                 </option>

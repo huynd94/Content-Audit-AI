@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetReviewStatsQueryKey,
+  getListCategoriesQueryKey,
   getListReviewsQueryKey,
   useCreateReview,
   useGetReviewStats,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { ReviewStatusBadge } from "@/components/reviews/ReviewStatusBadge";
+import { DEFAULT_SYSTEM_CATEGORIES } from "@/lib/defaultCategories";
 
 function getUrlPreview(rawValue: string) {
   try {
@@ -65,12 +67,34 @@ export default function HomePage() {
     data: categories,
     isLoading: isCategoriesLoading,
     error: categoriesError,
-  } = useListCategories();
-  const { data: reviews } = useListReviews({ limit: 5 });
-  const { data: stats } = useGetReviewStats();
+  } = useListCategories({
+    query: {
+      queryKey: getListCategoriesQueryKey(),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  });
+  const { data: reviews } = useListReviews(
+    { limit: 5 },
+    {
+      query: {
+        queryKey: getListReviewsQueryKey({ limit: 5 }),
+        retry: false,
+        refetchOnWindowFocus: false,
+      },
+    },
+  );
+  const { data: stats } = useGetReviewStats({
+    query: {
+      queryKey: getGetReviewStatsQueryKey(),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  });
   const createReview = useCreateReview();
 
-  const selectedCategory = categories?.find((category) => category.id === selectedCategoryId);
+  const effectiveCategories = categories && categories.length > 0 ? categories : DEFAULT_SYSTEM_CATEGORIES;
+  const selectedCategory = effectiveCategories.find((category) => category.id === selectedCategoryId);
   const urlPreview = getUrlPreview(url.trim());
   const progressIndex = isAnalyzing ? getProgressIndex(statusMessage) : 0;
   const statCards = stats
@@ -334,7 +358,7 @@ export default function HomePage() {
                   </div>
                 ))}
 
-                {!isCategoriesLoading && categories?.map((category) => {
+                {!isCategoriesLoading && effectiveCategories.map((category) => {
                   const isSelected = selectedCategoryId === category.id;
 
                   return (
@@ -367,12 +391,12 @@ export default function HomePage() {
               </div>
 
               {!isCategoriesLoading && categoriesError && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-700">
-                  {categoriesError instanceof Error ? categoriesError.message : "Không thể tải danh mục sản phẩm."}
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-700">
+                  Không thể tải danh mục từ máy chủ. Hệ thống đang dùng danh mục mặc định để tiếp tục kiểm duyệt.
                 </div>
               )}
 
-              {!isCategoriesLoading && !categoriesError && (!categories || categories.length === 0) && (
+              {!isCategoriesLoading && effectiveCategories.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 p-4 text-sm leading-6 text-slate-500">
                   Chưa tải được danh mục sản phẩm để chọn. Vui lòng tải lại trang hoặc thử lại sau.
                 </div>

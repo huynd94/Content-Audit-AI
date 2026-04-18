@@ -61,7 +61,11 @@ export default function HomePage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
 
-  const { data: categories } = useListCategories();
+  const {
+    data: categories,
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+  } = useListCategories();
   const { data: reviews } = useListReviews({ limit: 5 });
   const { data: stats } = useGetReviewStats();
   const createReview = useCreateReview();
@@ -196,7 +200,7 @@ export default function HomePage() {
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
             Nhập URL, chọn danh mục và nhận báo cáo có điểm số, mức độ ưu tiên cùng hướng sửa cụ thể.
-            Hệ thống này đã được chuẩn hóa để dùng OpenAI key từ <code className="rounded bg-slate-100 px-1.5 py-0.5">.env</code>.
+            Giao diện tập trung vào một việc duy nhất: chọn đúng loại sản phẩm và ra quyết định sửa nội dung nhanh.
           </p>
 
           {statCards.length > 0 && (
@@ -271,7 +275,7 @@ export default function HomePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
               <label htmlFor="url-input" className="block text-sm font-medium text-slate-800">
-                URL bai viet / landing page
+                URL bài viết / landing page
               </label>
               <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-slate-50/70 p-4 md:flex-row md:items-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm">
@@ -310,8 +314,27 @@ export default function HomePage() {
 
             <div className="space-y-3">
               <label className="block text-sm font-medium text-slate-800">Danh mục sản phẩm</label>
+              <p className="text-sm leading-6 text-slate-500">
+                Chọn đúng nhóm sản phẩm để checklist đánh giá bám sát chính sách và nội dung cần rà soát.
+              </p>
               <div className="grid gap-3 md:grid-cols-2">
-                {categories?.map((category) => {
+                {isCategoriesLoading && Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={`category-skeleton-${index}`}
+                    className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 animate-pulse rounded-2xl bg-slate-200" />
+                      <div className="min-w-0 flex-1">
+                        <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+                        <div className="mt-3 h-3 w-full animate-pulse rounded bg-slate-100" />
+                        <div className="mt-2 h-3 w-4/5 animate-pulse rounded bg-slate-100" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!isCategoriesLoading && categories?.map((category) => {
                   const isSelected = selectedCategoryId === category.id;
 
                   return (
@@ -327,8 +350,10 @@ export default function HomePage() {
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="text-2xl">{category.icon}</div>
-                        <div className="min-w-0">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
+                          {category.icon}
+                        </div>
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-3">
                             <div className="font-medium text-slate-900">{category.name}</div>
                             {isSelected && <CheckCircle2 className="h-4 w-4 text-primary" />}
@@ -340,6 +365,18 @@ export default function HomePage() {
                   );
                 })}
               </div>
+
+              {!isCategoriesLoading && categoriesError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-700">
+                  {categoriesError instanceof Error ? categoriesError.message : "Không thể tải danh mục sản phẩm."}
+                </div>
+              )}
+
+              {!isCategoriesLoading && !categoriesError && (!categories || categories.length === 0) && (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 p-4 text-sm leading-6 text-slate-500">
+                  Chưa tải được danh mục sản phẩm để chọn. Vui lòng tải lại trang hoặc thử lại sau.
+                </div>
+              )}
             </div>
 
             {error && (
@@ -358,7 +395,9 @@ export default function HomePage() {
 
             <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 md:flex-row md:items-center md:justify-between">
               <div className="text-sm leading-6 text-slate-500">
-                API key được cấu hình ở backend qua <code className="rounded bg-slate-100 px-1.5 py-0.5">OPENAI_API_KEY</code>.
+                {selectedCategory
+                  ? `Đang chuẩn bị checklist cho nhóm ${selectedCategory.name.toLowerCase()}.`
+                  : "Chọn danh mục sản phẩm trước khi bắt đầu kiểm duyệt."}
               </div>
 
               <button
@@ -405,7 +444,7 @@ export default function HomePage() {
                 <div className="mt-2 text-sm leading-6 text-slate-600">
                   {selectedCategory
                     ? selectedCategory.guidelines.split("\n").filter(Boolean).slice(0, 3).join(" ")
-                    : "Chọn danh mục để hiển thị bộ hướng dẫn được dùng trong ngữ cảnh phân tích của AI."}
+                    : "Chọn danh mục để hiển thị bộ hướng dẫn dùng cho lần kiểm duyệt này."}
                 </div>
               </div>
             </div>

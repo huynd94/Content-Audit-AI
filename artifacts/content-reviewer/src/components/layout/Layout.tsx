@@ -79,7 +79,7 @@ export default function Layout({ children }: LayoutProps) {
             Content Audit AI giúp biến việc kiểm duyệt nội dung thành danh sách kiểm tra có thể hành động.
           </div>
           <div>
-            Tương thích với OpenAI key trong <code className="rounded bg-muted px-1.5 py-0.5">.env</code> và triển khai trên VPS ARM64.
+            Tập trung vào URL, danh mục sản phẩm và thứ tự ưu tiên cần sửa.
           </div>
         </div>
       </footer>

@@ -244,7 +244,7 @@ export default function ReviewDetailPage() {
           <XCircle className="mx-auto h-10 w-10" />
           <h2 className="mt-4 text-xl font-semibold">Phân tích thất bại</h2>
           <p className="mt-2 text-sm leading-6 text-rose-600">
-            Hãy kiểm tra lại URL, kết nối mạng hoặc API key OpenAI trong env rồi chạy lại.
+            Hãy kiểm tra lại URL, khả năng truy cập trang đích hoặc thử chạy lại sau.
           </p>
         </section>
       )}

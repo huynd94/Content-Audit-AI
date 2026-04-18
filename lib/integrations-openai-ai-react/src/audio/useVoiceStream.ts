@@ -195,13 +195,13 @@ async function blobToBase64(blob: Blob, signal?: AbortSignal): Promise<string> {
       cleanup();
 
       if (typeof result !== "string") {
-        reject(new Error("Failed to read audio blob"));
+        reject(new Error("Không thể đọc dữ liệu âm thanh."));
         return;
       }
 
       const commaIndex = result.indexOf(",");
       if (commaIndex === -1) {
-        reject(new Error("Failed to parse audio data URL"));
+        reject(new Error("Không thể phân tích dữ liệu âm thanh dạng URL."));
         return;
       }
 
@@ -209,7 +209,7 @@ async function blobToBase64(blob: Blob, signal?: AbortSignal): Promise<string> {
     };
 
     reader.onerror = () => {
-      const error = reader.error ?? new Error("Failed to read audio blob");
+      const error = reader.error ?? new Error("Không thể đọc dữ liệu âm thanh.");
       cleanup();
       reject(error);
     };
@@ -312,13 +312,13 @@ export function useVoiceStream({ workletPath, ...callbacks }: StreamCallbacks) {
           const detail = await readErrorText(response);
           throw new Error(
             detail
-              ? `Voice request failed (${response.status} ${response.statusText}): ${detail}`
-              : `Voice request failed (${response.status} ${response.statusText})`
+              ? `Yêu cầu giọng nói thất bại (${response.status} ${response.statusText}): ${detail}`
+              : `Yêu cầu giọng nói thất bại (${response.status} ${response.statusText})`
           );
         }
 
         if (!response.body) {
-          throw new Error("Voice request failed: response body is missing");
+          throw new Error("Yêu cầu giọng nói thất bại: phản hồi không có nội dung.");
         }
 
         const reader = response.body.getReader();

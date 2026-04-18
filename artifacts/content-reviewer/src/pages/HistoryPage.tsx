@@ -35,7 +35,7 @@ export default function HistoryPage() {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!confirm("Ban co chac muon xoa review nay?")) {
+    if (!confirm("Bạn có chắc muốn xóa lượt kiểm duyệt này?")) {
       return;
     }
 
@@ -48,15 +48,15 @@ export default function HistoryPage() {
       <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60 backdrop-blur-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Review log</div>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-950">Lich su audit</h1>
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Nhật ký kiểm duyệt</div>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-950">Lịch sử kiểm duyệt</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Tim nhanh theo domain, category, trang thai, va mo lai cac report can sua tiep.
+              Tìm nhanh theo tên miền, danh mục, trạng thái và mở lại các báo cáo cần xử lý tiếp.
             </p>
           </div>
 
           <Link href="/" className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
-            Audit moi
+            Kiểm duyệt mới
           </Link>
         </div>
 
@@ -66,7 +66,7 @@ export default function HistoryPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tim theo domain, URL, category..."
+              placeholder="Tìm theo tên miền, URL, danh mục..."
               className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
             />
           </label>
@@ -79,7 +79,7 @@ export default function HistoryPage() {
               data-testid="filter-category"
               className="w-full bg-transparent text-sm outline-none"
             >
-              <option value="all">Tat ca category</option>
+              <option value="all">Tất cả danh mục</option>
               {categories?.map((category) => (
                 <option key={category.id} value={String(category.id)}>
                   {category.name}
@@ -96,11 +96,11 @@ export default function HistoryPage() {
               data-testid="filter-status"
               className="w-full bg-transparent text-sm outline-none"
             >
-              <option value="all">Tat ca trang thai</option>
-              <option value="completed">Hoan thanh</option>
-              <option value="analyzing">Dang phan tich</option>
-              <option value="pending">Cho xu ly</option>
-              <option value="failed">Loi</option>
+              <option value="all">Tất cả trạng thái</option>
+              <option value="completed">Hoàn thành</option>
+              <option value="analyzing">Đang phân tích</option>
+              <option value="pending">Chờ xử lý</option>
+              <option value="failed">Lỗi</option>
             </select>
           </label>
         </div>
@@ -121,12 +121,12 @@ export default function HistoryPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
             <LoaderCircle className="h-6 w-6" />
           </div>
-          <h2 className="mt-4 text-xl font-semibold text-slate-900">Khong tim thay review phu hop</h2>
+          <h2 className="mt-4 text-xl font-semibold text-slate-900">Không tìm thấy lượt kiểm duyệt phù hợp</h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Thu xoa bot bo loc hoac bat dau mot audit moi de tao du lieu dau vao.
+            Thử gỡ bớt bộ lọc hoặc bắt đầu một lượt kiểm duyệt mới để tạo dữ liệu đầu vào.
           </p>
           <Link href="/" className="mt-6 inline-flex items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-5 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
-            Tao audit moi
+            Tạo lượt kiểm duyệt mới
           </Link>
         </div>
       ) : (
@@ -144,7 +144,7 @@ export default function HistoryPage() {
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="text-lg font-medium text-slate-950">{review.categoryName ?? "Chua gan category"}</div>
+                      <div className="text-lg font-medium text-slate-950">{review.categoryName ?? "Chưa gán danh mục"}</div>
                       <ReviewStatusBadge status={review.status} />
                     </div>
 
@@ -160,7 +160,7 @@ export default function HistoryPage() {
                         onClick={(event) => event.stopPropagation()}
                         className="inline-flex items-center gap-1 text-primary hover:underline"
                       >
-                        Mo link
+                        Mở liên kết
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     </div>
@@ -182,7 +182,7 @@ export default function HistoryPage() {
                         {[
                           { label: "SEO", value: result.seoScore },
                           { label: "Ads", value: result.adsScore },
-                          { label: "Tong", value: result.overallScore },
+                          { label: "Tổng", value: result.overallScore },
                         ].map((item) => (
                           <div key={item.label} className="min-w-24 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-center">
                             <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{item.label}</div>

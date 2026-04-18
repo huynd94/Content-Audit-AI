@@ -1,38 +1,38 @@
-# Deploy tren VPS ARM64
+# Triển khai trên VPS ARM64
 
-Ung dung da duoc chuan hoa de khong phu thuoc vao Replit runtime. Repo da kem san:
+Dự án đã được chuẩn hóa để không còn phụ thuộc vào runtime của Replit. Repo hiện có sẵn:
 
-- `.env.production` cho deploy that tren may.
-- `.env.production.docker` cho Docker Compose production.
-- `docker-compose.production.yml` cho Docker production.
-- `deploy/nginx/content-audit-ai.conf` cho Nginx reverse proxy.
-- `deploy/systemd/content-audit-ai.service` cho `systemd`.
+- `.env.production` cho mô hình chạy trực tiếp bằng Node.js + systemd
+- `.env.production.docker` cho Docker Compose production
+- `docker-compose.production.yml` cho stack production bằng Docker
+- `deploy/nginx/content-audit-ai.conf` cho Nginx reverse proxy
+- `deploy/systemd/content-audit-ai.service` cho systemd
 
-Mac dinh cac file mau dung:
+Giá trị mẫu mặc định trong tài liệu:
 
 - domain: `audit.example.com`
-- thu muc app: `/opt/content-audit-ai`
-- cong app: `3000`
+- thư mục ứng dụng: `/opt/content-audit-ai`
+- cổng ứng dụng: `3000`
 
-Doi lai truoc khi deploy that.
+Hãy đổi lại các giá trị này trước khi triển khai thật.
 
-## Cach 1: Docker
+## Cách 1: Docker
 
-1. Cai `docker` va `docker compose` tren VPS ARM64.
-2. Clone dung branch deploy:
+1. Cài `docker` và `docker compose` trên VPS ARM64.
+2. Clone đúng nhánh cần deploy:
 
 ```bash
 git clone --branch codex/remove-replit https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
 cd /opt/content-audit-ai
 ```
 
-3. Edit file env Docker:
+3. Sửa file env dành cho Docker:
 
 ```bash
 nano .env.production.docker
 ```
 
-4. Dien it nhat cac bien sau trong `.env.production.docker`:
+4. Điền tối thiểu các biến sau trong `.env.production.docker`:
 
 ```bash
 DATABASE_URL=postgresql://content_audit_ai:change-me@db:5432/content_audit_ai
@@ -42,39 +42,39 @@ TRUST_PROXY=true
 PORT=3000
 ```
 
-5. Build va chay:
+5. Build và khởi động stack:
 
 ```bash
 docker compose -f docker-compose.production.yml up -d --build
 ```
 
-6. Neu can day schema len database:
+6. Nếu cần đẩy schema lên database:
 
 ```bash
 docker compose -f docker-compose.production.yml exec app pnpm --filter @workspace/db run push
 ```
 
-7. Kiem tra logs:
+7. Kiểm tra trạng thái và log:
 
 ```bash
 docker compose -f docker-compose.production.yml ps
 docker compose -f docker-compose.production.yml logs -f app
 ```
 
-8. Dat Nginx proxy vao `127.0.0.1:3000` bang file `deploy/nginx/content-audit-ai.conf`, sau do reload Nginx.
+8. Đặt Nginx reverse proxy về `127.0.0.1:3000` bằng file `deploy/nginx/content-audit-ai.conf`, sau đó reload Nginx.
 
-App backend se phuc vu API va file frontend build san tren cung cong `PORT`. Docker compose production map cong vao `127.0.0.1` de Nginx o host la diem vao duy nhat.
+Trong mô hình này, backend sẽ phục vụ API và cả frontend đã build sẵn trên cùng cổng `3000`. Compose production chỉ bind cổng vào `127.0.0.1` để Nginx trên host là điểm truy cập duy nhất.
 
-## Cach 2: Node.js truc tiep
+## Cách 2: Node.js trực tiếp
 
-Yeu cau:
+Yêu cầu:
 
 - Node.js 24+
-- Corepack hoac pnpm 10+
-- Postgres 16+
+- Corepack hoặc pnpm 10+
+- PostgreSQL 16+
 - Nginx
 
-Lenh cai va chay:
+Các bước cơ bản:
 
 ```bash
 cp .env.production /opt/content-audit-ai/.env.production
@@ -85,7 +85,7 @@ pnpm build
 node --enable-source-maps artifacts/api-server/dist/index.mjs
 ```
 
-Neu chay bang `systemd`, khong chay `node ...` thu cong. Dung file `deploy/systemd/content-audit-ai.service`:
+Nếu chạy bằng `systemd`, không cần giữ tiến trình `node ...` thủ công. Dùng file `deploy/systemd/content-audit-ai.service`:
 
 ```bash
 sudo cp deploy/systemd/content-audit-ai.service /etc/systemd/system/
@@ -94,23 +94,23 @@ sudo systemctl enable --now content-audit-ai
 sudo systemctl status content-audit-ai
 ```
 
-Service nay doc env tu `/opt/content-audit-ai/.env.production`.
+Service này đọc biến môi trường từ `/opt/content-audit-ai/.env.production`.
 
-## Bien moi truong chinh
+## Biến môi trường chính
 
-- `OPENAI_API_KEY`: bat buoc. Server key duoc doc tu `.env`, khong con phu thuoc `AI_INTEGRATIONS_OPENAI_*`.
-- `OPENAI_BASE_URL`: tuy chon. Dung khi can route qua OpenAI-compatible gateway.
-- `OPENAI_MODEL`: mac dinh `gpt-5-mini`.
-- `DATABASE_URL`: bat buoc.
-- `CORS_ORIGIN`: domain frontend duoc phep goi API.
-- `TRUST_PROXY`: dat `true` khi chay sau Nginx/Caddy/Traefik.
-- `PORT`: mac dinh `3000`.
+- `OPENAI_API_KEY`: bắt buộc. API key OpenAI dùng ở server.
+- `OPENAI_BASE_URL`: tùy chọn. Chỉ dùng khi cần route qua gateway OpenAI-compatible.
+- `OPENAI_MODEL`: mặc định là `gpt-5-mini`.
+- `DATABASE_URL`: bắt buộc.
+- `CORS_ORIGIN`: domain frontend được phép gọi API.
+- `TRUST_PROXY`: nên đặt `true` khi chạy sau Nginx, Caddy hoặc Traefik.
+- `PORT`: mặc định là `3000`.
 
-## Reverse proxy
+## Reverse proxy với Nginx
 
-Dat reverse proxy ve `http://127.0.0.1:3000` va bat TLS tai Nginx/Caddy. Khi proxy o production, giu `TRUST_PROXY=true` de rate limit va logging lay dung IP client.
+Proxy ứng dụng về `http://127.0.0.1:3000` và bật TLS ở Nginx. Khi chạy production sau proxy, nên giữ `TRUST_PROXY=true` để rate limit và log lấy đúng IP client.
 
-Lenh gan dung cho Nginx:
+Các lệnh thường dùng:
 
 ```bash
 sudo cp deploy/nginx/content-audit-ai.conf /etc/nginx/sites-available/content-audit-ai.conf
@@ -119,8 +119,8 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-## Ghi chu build
+## Ghi chú build và vận hành
 
-- Workspace khong con khoa `linux-arm64`, nen co the `pnpm install` tren ARM64.
-- Frontend khong con bat buoc `BASE_PATH` hay `PORT` tu Replit de build.
-- Neu deploy duoi subpath, co the set `BASE_PATH=/your-subpath` truoc khi build frontend.
+- Workspace không còn chặn `linux-arm64`, nên có thể `pnpm install` trên ARM64.
+- Frontend không còn bắt buộc `BASE_PATH` hoặc `PORT` từ Replit để build.
+- Nếu chạy dưới subpath, có thể set `BASE_PATH=/duong-dan-cua-ban` trước khi build frontend.

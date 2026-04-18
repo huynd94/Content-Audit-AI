@@ -54,9 +54,9 @@ export function useAudioPlayback(workletPath: string) {
 
   const init = useCallback(async () => {
     if (readyRef.current) return;
-    if (!workletPath) {
-      throw new Error("workletPath is required for audio playback");
-    }
+  if (!workletPath) {
+    throw new Error("Bắt buộc phải có workletPath để phát âm thanh");
+  }
 
     const ctx = new AudioContext({ sampleRate: 24000 });
     await ctx.audioWorklet.addModule(workletPath);

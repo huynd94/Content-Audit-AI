@@ -2,7 +2,7 @@ export function readRequiredEnv(name: string): string {
   const value = process.env[name]?.trim();
 
   if (!value) {
-    throw new Error(`${name} must be set before using OpenAI integrations.`);
+    throw new Error(`Biến môi trường ${name} là bắt buộc trước khi dùng OpenAI integrations.`);
   }
 
   return value;

@@ -28,7 +28,7 @@ export async function createAudioPlaybackContext(
   sampleRate = 24000
 ): Promise<{ ctx: AudioContext; worklet: AudioWorkletNode }> {
   if (!workletPath) {
-    throw new Error("workletPath is required for audio playback");
+    throw new Error("Bắt buộc phải có workletPath để phát âm thanh");
   }
   const ctx = new AudioContext({ sampleRate });
   await ctx.audioWorklet.addModule(workletPath);

@@ -1,27 +1,31 @@
-# Workspace
+# Thông tin workspace
 
-## Overview
+## Tổng quan
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Đây là monorepo dùng `pnpm workspace` và TypeScript. Mỗi package quản lý vai trò riêng nhưng cùng chia sẻ một quy trình build và typecheck thống nhất.
 
-## Stack
+## Stack chính
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- Công cụ monorepo: pnpm workspaces
+- Node.js: 24
+- Trình quản lý package: pnpm
+- TypeScript: 5.9
+- API framework: Express 5
+- Cơ sở dữ liệu: PostgreSQL + Drizzle ORM
+- Validation: Zod và drizzle-zod
+- Codegen API: Orval từ OpenAPI spec
+- Build backend: esbuild
 
-## Key Commands
+## Lệnh quan trọng
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+- `corepack pnpm run typecheck`: chạy typecheck cho toàn bộ workspace
+- `corepack pnpm build`: typecheck và build toàn bộ package
+- `corepack pnpm --filter @workspace/api-spec run codegen`: generate lại React client và Zod schema từ OpenAPI
+- `corepack pnpm --filter @workspace/db run push`: đẩy schema database ở môi trường dev
+- `corepack pnpm --filter @workspace/api-server run dev`: chạy API server cục bộ
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+## Ghi chú
+
+- Nhánh hiện tại đã loại bỏ phụ thuộc runtime của Replit ở các phần chính.
+- Cấu hình OpenAI hiện đọc từ `.env`.
+- Repo đã có sẵn tài liệu triển khai trong `README.md` và `DEPLOY-ARM64.md`.

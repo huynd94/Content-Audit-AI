@@ -157,7 +157,7 @@ export async function batchProcessWithSSE<T, R>(
       sendEvent({
         type: "progress",
         index,
-        error: error instanceof Error ? error.message : "Processing failed",
+        error: error instanceof Error ? error.message : "Xử lý thất bại",
       });
     }
   }

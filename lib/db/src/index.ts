@@ -6,7 +6,7 @@ const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "Biến môi trường DATABASE_URL là bắt buộc. Hãy cấu hình kết nối cơ sở dữ liệu trước khi chạy ứng dụng.",
   );
 }
 

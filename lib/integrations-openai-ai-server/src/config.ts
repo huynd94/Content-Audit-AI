@@ -7,7 +7,7 @@ function readRequiredEnv(name: string): string {
   const value = process.env[name]?.trim();
 
   if (!value) {
-    throw new Error(`${name} must be set.`);
+    throw new Error(`Biến môi trường ${name} là bắt buộc.`);
   }
 
   return value;

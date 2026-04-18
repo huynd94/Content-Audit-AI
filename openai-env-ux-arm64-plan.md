@@ -1,19 +1,29 @@
-# OpenAI Env, UX, ARM64 Plan
+# Kế hoạch OpenAI Env, UX và ARM64
 
-## Goal
-Thay phụ thuộc Replit OpenAI integration bằng cấu hình `.env` chuẩn, nâng UX/UI cho luồng audit nội dung, và làm dự án deploy được trên VPS ARM64.
+## Mục tiêu
 
-## Tasks
-- [ ] Chuẩn hóa backend OpenAI client: đổi `AI_INTEGRATIONS_OPENAI_*` sang `OPENAI_API_KEY`, thêm `OPENAI_BASE_URL` tùy chọn, gom khởi tạo client vào một adapter duy nhất, và bỏ thông điệp lỗi phụ thuộc Replit. Verify: `artifacts/api-server/src/routes/reviews.ts` vẫn gọi được client mới và project typecheck pass.
-- [ ] Gia cố lớp bảo vệ backend: chặn SSRF cho URL analyze, thêm timeout/retry hợp lý, giới hạn CORS theo env, và thêm rate limit cho `POST /api/reviews` + `POST /api/reviews/analyze`. Verify: request URL private/internal bị từ chối, health/check route vẫn hoạt động.
-- [ ] Tách model/config ra env: thêm `OPENAI_MODEL`, `OPENAI_MAX_COMPLETION_TOKENS`, và `.env.example`; coi `.env` là key của operator, không phải BYOK đa tenant. Verify: app khởi động chỉ với `.env` + `DATABASE_URL` + `PORT` mà không cần Replit provisioning.
-- [ ] Dọn phụ thuộc Replit ở frontend/build: bỏ bắt buộc `BASE_PATH` khi không cần, chuyển plugin Replit sang optional dev-only, và xóa các ghi chú/cấu hình runtime chỉ có ý nghĩa trên Replit. Verify: `pnpm build` chạy được trên môi trường Linux thường.
-- [ ] Sửa readiness cho ARM64: gỡ các override khóa `linux-arm64` trong `pnpm-workspace.yaml`, kiểm tra các native package còn lại, và thêm hướng dẫn build/runtime cho Ubuntu ARM64. Verify: dependency resolution không còn chặn `esbuild`, `rollup`, `tailwindcss oxide` trên ARM64.
-- [ ] Cải thiện homepage theo task-first UX: thêm hero ngắn, giải thích 3 bước, validate URL sớm, preview domain, trạng thái phân tích theo step, và CTA rõ hơn. Verify: người dùng mới có thể hiểu luồng trong một màn hình mà không cần thử sai.
-- [ ] Cải thiện history/detail theo decision UX: thêm search/filter thực sự ở API, summary sticky, quick actions, severity grouping rõ hơn, và skeleton/loading/error states nhất quán. Verify: recent reviews không tải toàn bộ dữ liệu và detail page dễ quét vấn đề hơn.
-- [ ] Chuẩn hóa vận hành deploy: thêm `Dockerfile`, `docker-compose.yml` hoặc hướng dẫn `systemd + nginx`, cùng biến môi trường tối thiểu và lệnh migrate/start. Verify: có một runbook đủ để dựng app mới trên VPS mà không cần Replit.
+Thay phụ thuộc OpenAI integration của Replit bằng cấu hình `.env` tiêu chuẩn, nâng cấp UX/UI cho luồng audit nội dung, và làm cho dự án triển khai được trên VPS ARM64.
 
-## Done When
-- [ ] Ứng dụng khởi động và phân tích nội dung bằng OpenAI key trong `.env`.
-- [ ] Build/deploy không còn phụ thuộc Replit hoặc Linux x64.
-- [ ] Luồng chính từ nhập URL đến xem kết quả mạch lạc hơn, ít thao tác thừa hơn.
+## Hạng mục công việc
+
+- [x] Chuẩn hóa OpenAI client ở backend: đổi `AI_INTEGRATIONS_OPENAI_*` sang `OPENAI_API_KEY`, thêm `OPENAI_BASE_URL` tùy chọn, gom khởi tạo client vào một adapter duy nhất và bỏ thông điệp lỗi gắn với Replit.
+- [x] Gia cố lớp bảo vệ backend: chặn SSRF cho URL analyze, thêm timeout và retry hợp lý, cấu hình CORS theo env và thêm rate limit cho `POST /api/reviews` cùng `POST /api/reviews/analyze`.
+- [x] Tách model và token config ra env: thêm `OPENAI_MODEL`, `OPENAI_MAX_COMPLETION_TOKENS` và `.env.example`; xem `.env` là key của operator, không phải BYOK đa tenant.
+- [x] Dọn phụ thuộc Replit ở frontend và build: bỏ bắt buộc `BASE_PATH` khi không cần, chuyển plugin Replit sang optional dev-only và loại bỏ giả định runtime chỉ đúng trên Replit.
+- [x] Mở đường build trên ARM64: gỡ các override khóa `linux-arm64` trong `pnpm-workspace.yaml`, kiểm tra các native package còn lại và chuẩn hóa hướng dẫn build cho Ubuntu ARM64.
+- [x] Cải thiện homepage theo hướng task-first UX: làm rõ hero, mô tả 3 bước, validate URL sớm, hiển thị tiến trình phân tích và làm CTA rõ ràng hơn.
+- [x] Cải thiện history và detail theo hướng decision UX: thêm search và filter thật ở API, summary rõ hơn, grouping lỗi tốt hơn và loading state nhất quán hơn.
+- [x] Chuẩn hóa deploy: thêm `Dockerfile`, `docker-compose.yml`, `docker-compose.production.yml`, file env mẫu, Nginx config, systemd service và tài liệu triển khai.
+
+## Tiêu chí hoàn thành
+
+- [x] Ứng dụng khởi động và phân tích nội dung bằng OpenAI key trong `.env`
+- [x] Build và deploy không còn phụ thuộc Replit hoặc Linux x64
+- [x] Luồng chính từ nhập URL đến xem kết quả mạch lạc hơn và ít thao tác thừa hơn
+
+## Ghi chú triển khai
+
+- Verification đã chạy với `corepack pnpm build` và pass toàn workspace.
+- `OPENAI_BASE_URL` để trống nếu dùng OpenAI trực tiếp.
+- Nếu triển khai bằng Docker production, dùng `.env.production.docker`.
+- Nếu triển khai bằng Nginx + systemd trên host, dùng `.env.production`.

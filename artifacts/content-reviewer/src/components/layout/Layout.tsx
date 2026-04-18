@@ -29,7 +29,7 @@ export default function Layout({ children }: LayoutProps) {
                 Content Audit AI
               </div>
               <div className="truncate text-sm text-muted-foreground">
-                SEO, Ads, Shopping va GDN review trong mot luong.
+                Kiểm duyệt SEO, Ads, Shopping và GDN trong một luồng.
               </div>
             </div>
           </Link>
@@ -62,7 +62,7 @@ export default function Layout({ children }: LayoutProps) {
                 href="/"
                 className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
               >
-                Audit mới
+                Kiểm duyệt mới
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
             )}
@@ -76,10 +76,10 @@ export default function Layout({ children }: LayoutProps) {
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary" />
-            Content Audit AI giup doi content review thanh checklist co the hanh dong.
+            Content Audit AI giúp biến việc kiểm duyệt nội dung thành danh sách kiểm tra có thể hành động.
           </div>
           <div>
-            Tuong thich voi OpenAI key trong <code className="rounded bg-muted px-1.5 py-0.5">.env</code> va deploy VPS ARM64.
+            Tương thích với OpenAI key trong <code className="rounded bg-muted px-1.5 py-0.5">.env</code> và triển khai trên VPS ARM64.
           </div>
         </div>
       </footer>

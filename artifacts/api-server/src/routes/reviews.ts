@@ -18,13 +18,13 @@ const createReviewRateLimiter = createRateLimiter({
   keyPrefix: "create-review",
   windowMs: appEnv.rateLimitWindowMs,
   max: appEnv.createReviewRateLimitMax,
-  message: "Too many review creations. Please try again later.",
+  message: "Bạn đã tạo quá nhiều lượt kiểm duyệt. Vui lòng thử lại sau.",
 });
 const analyzeReviewRateLimiter = createRateLimiter({
   keyPrefix: "analyze-review",
   windowMs: appEnv.rateLimitWindowMs,
   max: appEnv.analyzeReviewRateLimitMax,
-  message: "Too many analysis requests. Please try again later.",
+  message: "Bạn đã gửi quá nhiều yêu cầu phân tích. Vui lòng thử lại sau.",
 });
 
 type ReviewStatus = "pending" | "analyzing" | "completed" | "failed";
@@ -35,18 +35,19 @@ function buildAnalysisPrompt(
   categoryGuidelines: string,
   content: string,
 ): string {
-  return `You are a senior content compliance reviewer for SEO and Google advertising policies.
+  return `Bạn là chuyên gia kiểm duyệt nội dung cho SEO và chính sách quảng cáo Google.
 
 URL: ${url}
-Category: ${categoryName}
+Danh mục: ${categoryName}
 
-POLICY AND QUALITY CHECKLIST:
+DANH SÁCH KIỂM TRA CHÍNH SÁCH VÀ CHẤT LƯỢNG:
 ${categoryGuidelines}
 
-PAGE CONTENT:
+NỘI DUNG TRANG:
 ${content}
 
-Return JSON only. No markdown. No prose outside JSON.
+Chỉ trả về JSON hợp lệ. Không dùng markdown. Không viết thêm nội dung ngoài JSON.
+Toàn bộ giá trị chuỗi trong JSON phải viết bằng tiếng Việt có dấu.
 
 {
   "seoScore": <0-100>,
@@ -54,15 +55,15 @@ Return JSON only. No markdown. No prose outside JSON.
   "shoppingScore": <0-100>,
   "gdnScore": <0-100>,
   "overallScore": <0-100>,
-  "summary": "<high level summary>",
+  "summary": "<tóm tắt cấp cao>",
   "issues": [
     {
       "type": "<seo|google_ads|google_shopping|gdn|content_quality|policy_violation>",
       "severity": "<critical|major|minor|suggestion>",
-      "title": "<short issue title>",
-      "description": "<specific issue description>",
-      "location": "<title|meta_description|h1|body|image|url|null>",
-      "recommendation": "<specific remediation guidance>"
+      "title": "<tiêu đề ngắn của vấn đề>",
+      "description": "<mô tả cụ thể vấn đề>",
+      "location": "<title|meta_description|h1|body|image|url|null nếu không xác định>",
+      "recommendation": "<hướng xử lý cụ thể>"
     }
   ],
   "criticalCount": <number>,
@@ -71,14 +72,14 @@ Return JSON only. No markdown. No prose outside JSON.
   "suggestionCount": <number>
 }
 
-Review all of the following:
-- SEO structure, metadata, headings, internal linking, keyword clarity, image quality.
-- Google Ads policy risk, exaggerated claims, restricted wording, unsafe targeting.
-- Google Shopping title quality, description completeness, mandatory information.
-- GDN suitability, misleading creative, audience sensitivity, imagery.
-- Overall content quality, clarity, factual precision, completeness.
+Hãy rà soát đầy đủ các hạng mục sau:
+- Cấu trúc SEO, metadata, heading, liên kết nội bộ, độ rõ của từ khóa, chất lượng hình ảnh.
+- Rủi ro chính sách Google Ads, từ ngữ phóng đại, cách diễn đạt bị hạn chế, nhắm mục tiêu không an toàn.
+- Chất lượng tiêu đề và mô tả cho Google Shopping, mức độ đầy đủ của thông tin bắt buộc.
+- Mức độ phù hợp với GDN, creative gây hiểu lầm, độ nhạy cảm với đối tượng, hình ảnh minh họa.
+- Chất lượng nội dung tổng thể, độ rõ ràng, độ chính xác thực tế và mức độ đầy đủ.
 
-For every issue found, explain what is wrong, why it matters, and how to fix it.`;
+Với mỗi vấn đề, hãy nêu rõ: sai ở đâu, vì sao quan trọng và cần sửa như thế nào.`;
 }
 
 function shouldRetryFetch(statusCode?: number, error?: unknown): boolean {
@@ -131,7 +132,7 @@ async function fetchPageHtml(targetUrl: URL): Promise<string> {
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("Failed to fetch page.");
+  throw lastError instanceof Error ? lastError : new Error("Không thể tải nội dung trang.");
 }
 
 async function fetchUrlContent(targetUrl: URL): Promise<string> {
@@ -153,12 +154,12 @@ async function fetchUrlContent(targetUrl: URL): Promise<string> {
   const h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
 
   const keyElements = [
-    titleMatch ? `TITLE TAG: ${titleMatch[1].trim()}` : "TITLE TAG: Khong tim thay",
-    metaDescMatch ? `META DESCRIPTION: ${metaDescMatch[1].trim()}` : "META DESCRIPTION: Khong tim thay",
-    h1Match ? `H1: ${h1Match[1].trim()}` : "H1: Khong tim thay",
+    titleMatch ? `THẺ TITLE: ${titleMatch[1].trim()}` : "THẺ TITLE: Không tìm thấy",
+    metaDescMatch ? `THẺ META DESCRIPTION: ${metaDescMatch[1].trim()}` : "THẺ META DESCRIPTION: Không tìm thấy",
+    h1Match ? `H1: ${h1Match[1].trim()}` : "H1: Không tìm thấy",
   ].join("\n");
 
-  return `${keyElements}\n\nNOI DUNG TRANG:\n${text.slice(0, appEnv.fetchContentMaxChars)}`;
+  return `${keyElements}\n\nNỘI DUNG TRANG:\n${text.slice(0, appEnv.fetchContentMaxChars)}`;
 }
 
 router.get("/reviews/stats", async (req, res): Promise<void> => {
@@ -194,13 +195,13 @@ router.get("/reviews/stats", async (req, res): Promise<void> => {
       avgAdsScore: avgScores[0]?.avgAds ?? null,
       avgOverallScore: avgScores[0]?.avgOverall ?? null,
       reviewsByCategory: byCategory.map((row) => ({
-        categoryName: row.categoryName ?? "Unknown",
+        categoryName: row.categoryName ?? "Chưa xác định",
         count: Number(row.count),
       })),
     });
   } catch (err) {
-    req.log.error({ err }, "Failed to get review stats");
-    res.status(500).json({ error: "Failed to get stats" });
+    req.log.error({ err }, "Không thể lấy thống kê kiểm duyệt");
+    res.status(500).json({ error: "Không thể lấy thống kê." });
   }
 });
 
@@ -267,8 +268,8 @@ router.get("/reviews", async (req, res): Promise<void> => {
       : await orderedQuery;
     res.json(reviews);
   } catch (err) {
-    req.log.error({ err }, "Failed to list reviews");
-    res.status(500).json({ error: "Failed to list reviews" });
+    req.log.error({ err }, "Không thể lấy danh sách kiểm duyệt");
+    res.status(500).json({ error: "Không thể lấy danh sách kiểm duyệt." });
   }
 });
 
@@ -302,8 +303,8 @@ router.post("/reviews", createReviewRateLimiter, async (req, res): Promise<void>
       return;
     }
 
-    req.log.error({ err }, "Failed to create review");
-    res.status(500).json({ error: "Failed to create review" });
+    req.log.error({ err }, "Không thể tạo lượt kiểm duyệt");
+    res.status(500).json({ error: "Không thể tạo lượt kiểm duyệt." });
   }
 });
 
@@ -333,7 +334,7 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
       .set({ status: "analyzing", updatedAt: new Date() })
       .where(eq(reviewsTable.id, reviewId));
 
-    sendEvent({ type: "status", message: "Dang tai noi dung trang..." });
+    sendEvent({ type: "status", message: "Đang tải nội dung trang..." });
 
     let pageContent: string;
 
@@ -341,11 +342,11 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
       pageContent = await fetchUrlContent(safeUrl);
     } catch (fetchErr) {
       const errMsg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
-      sendEvent({ type: "status", message: `Khong the tai trang: ${errMsg}. Dang phan tich URL...` });
-      pageContent = `URL: ${url}\n(Khong the tai noi dung trang - phan tich dua tren URL va danh muc)`;
+      sendEvent({ type: "status", message: `Không thể tải trang: ${errMsg}. Đang phân tích dựa trên URL...` });
+      pageContent = `URL: ${url}\n(Không thể tải nội dung trang, hệ thống sẽ phân tích dựa trên URL và danh mục.)`;
     }
 
-    sendEvent({ type: "status", message: "Dang phan tich noi dung voi AI..." });
+    sendEvent({ type: "status", message: "Đang phân tích nội dung với AI..." });
 
     const prompt = buildAnalysisPrompt(url, categoryName, categoryGuidelines, pageContent);
 
@@ -355,7 +356,7 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
       messages: [
         {
           role: "system",
-          content: "You are an expert in SEO and Google advertising policy. Return valid JSON only.",
+          content: "Bạn là chuyên gia về SEO và chính sách quảng cáo Google. Chỉ trả về JSON hợp lệ với nội dung tiếng Việt có dấu.",
         },
         { role: "user", content: prompt },
       ],
@@ -378,7 +379,7 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
     const jsonMatch = fullResponse.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      throw new Error("AI did not return valid JSON.");
+      throw new Error("AI không trả về JSON hợp lệ.");
     }
 
     const result = JSON.parse(jsonMatch[0]);
@@ -396,7 +397,7 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
   } catch (err) {
-    req.log.error({ err }, "Analysis failed");
+    req.log.error({ err }, "Phân tích nội dung thất bại");
 
     await db
       .update(reviewsTable)
@@ -406,7 +407,7 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
 
     sendEvent({
       type: "error",
-      message: err instanceof Error ? err.message : "Loi phan tich",
+      message: err instanceof Error ? err.message : "Lỗi phân tích.",
     });
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
@@ -440,14 +441,14 @@ router.get("/reviews/:id", async (req, res): Promise<void> => {
       .where(eq(reviewsTable.id, parsed.data.id));
 
     if (!review) {
-      res.status(404).json({ error: "Review not found" });
+      res.status(404).json({ error: "Không tìm thấy lượt kiểm duyệt." });
       return;
     }
 
     res.json(review);
   } catch (err) {
-    req.log.error({ err }, "Failed to get review");
-    res.status(500).json({ error: "Failed to get review" });
+    req.log.error({ err }, "Không thể lấy chi tiết kiểm duyệt");
+    res.status(500).json({ error: "Không thể lấy chi tiết kiểm duyệt." });
   }
 });
 
@@ -467,14 +468,14 @@ router.delete("/reviews/:id", async (req, res): Promise<void> => {
       .returning();
 
     if (!deleted) {
-      res.status(404).json({ error: "Review not found" });
+      res.status(404).json({ error: "Không tìm thấy lượt kiểm duyệt." });
       return;
     }
 
     res.sendStatus(204);
   } catch (err) {
-    req.log.error({ err }, "Failed to delete review");
-    res.status(500).json({ error: "Failed to delete review" });
+    req.log.error({ err }, "Không thể xóa lượt kiểm duyệt");
+    res.status(500).json({ error: "Không thể xóa lượt kiểm duyệt." });
   }
 });
 

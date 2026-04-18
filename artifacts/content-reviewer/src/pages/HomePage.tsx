@@ -39,17 +39,17 @@ function getUrlPreview(rawValue: string) {
 
 function getProgressIndex(statusMessage: string) {
   if (!statusMessage) return 0;
-  if (statusMessage.toLowerCase().includes("tao")) return 1;
-  if (statusMessage.toLowerCase().includes("tai")) return 2;
-  if (statusMessage.toLowerCase().includes("ai")) return 3;
+  if (statusMessage.toLowerCase().includes("tạo")) return 1;
+  if (statusMessage.toLowerCase().includes("tải")) return 2;
+  if (statusMessage.toLowerCase().includes("phân tích")) return 3;
   return 4;
 }
 
 const STEPS = [
-  { title: "Tạo phiên audit", description: "Khởi tạo request và khóa category." },
-  { title: "Lấy nội dung trang", description: "Thu thập title, meta, H1 và body." },
+  { title: "Tạo phiên kiểm duyệt", description: "Khởi tạo yêu cầu và khóa danh mục." },
+  { title: "Lấy nội dung trang", description: "Thu thập title, meta, H1 và phần thân bài." },
   { title: "Phân tích với AI", description: "Đối chiếu SEO, Ads, Shopping và GDN." },
-  { title: "Sinh báo cáo", description: "Xuất issue list và điểm ưu tiên sửa." },
+  { title: "Sinh báo cáo", description: "Xuất danh sách vấn đề và điểm ưu tiên sửa." },
 ];
 
 export default function HomePage() {
@@ -71,15 +71,15 @@ export default function HomePage() {
   const progressIndex = isAnalyzing ? getProgressIndex(statusMessage) : 0;
   const statCards = stats
     ? [
-        { label: "Tong review", value: stats.totalReviews, icon: FileText },
-        { label: "Da hoan thanh", value: stats.completedReviews, icon: CheckCircle2 },
+        { label: "Tổng lượt kiểm duyệt", value: stats.totalReviews, icon: FileText },
+        { label: "Đã hoàn thành", value: stats.completedReviews, icon: CheckCircle2 },
         {
-          label: "Avg SEO",
+          label: "SEO trung bình",
           value: stats.avgSeoScore != null ? Math.round(Number(stats.avgSeoScore)) : "—",
           icon: Radar,
         },
         {
-          label: "Avg tong the",
+          label: "Tổng thể trung bình",
           value: stats.avgOverallScore != null ? Math.round(Number(stats.avgOverallScore)) : "—",
           icon: ShieldCheck,
         },
@@ -95,7 +95,7 @@ export default function HomePage() {
 
     setError("");
     setIsAnalyzing(true);
-    setStatusMessage("Dang tao yeu cau phan tich...");
+    setStatusMessage("Đang tạo yêu cầu phân tích...");
 
     let reviewId: number;
 
@@ -105,7 +105,7 @@ export default function HomePage() {
       });
       reviewId = review.id;
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Khong the tao yeu cau review.");
+      setError(submitError instanceof Error ? submitError.message : "Không thể tạo yêu cầu kiểm duyệt.");
       setIsAnalyzing(false);
       return;
     }
@@ -124,7 +124,7 @@ export default function HomePage() {
       });
 
       if (!response.ok || !response.body) {
-        throw new Error("Ket noi phan tich that bai.");
+        throw new Error("Kết nối phân tích thất bại.");
       }
 
       const reader = response.body.getReader();
@@ -176,7 +176,7 @@ export default function HomePage() {
         }
       }
     } catch (streamError) {
-      setError(streamError instanceof Error ? streamError.message : "Loi khi phan tich noi dung.");
+      setError(streamError instanceof Error ? streamError.message : "Lỗi khi phân tích nội dung.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -188,15 +188,15 @@ export default function HomePage() {
         <div className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-xl shadow-sky-100/50 backdrop-blur-xl">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-            Audit flow
+            Luồng kiểm duyệt
           </div>
 
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
-            Review mot landing page theo SEO, Google Ads, Shopping va GDN trong cung mot luong.
+            Kiểm duyệt một landing page theo SEO, Google Ads, Shopping và GDN trong cùng một luồng.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-            Nhap URL, chon category, va nhan report co diem so, muc do uu tien, va huong sua cu the.
-            He thong nay duoc chuan hoa de dung OpenAI key tu <code className="rounded bg-slate-100 px-1.5 py-0.5">.env</code>.
+            Nhập URL, chọn danh mục và nhận báo cáo có điểm số, mức độ ưu tiên cùng hướng sửa cụ thể.
+            Hệ thống này đã được chuẩn hóa để dùng OpenAI key từ <code className="rounded bg-slate-100 px-1.5 py-0.5">.env</code>.
           </p>
 
           {statCards.length > 0 && (
@@ -215,24 +215,24 @@ export default function HomePage() {
         </div>
 
         <div className="rounded-[2rem] border border-slate-200/80 bg-slate-950 p-8 text-white shadow-xl shadow-slate-200/60">
-          <div className="text-sm uppercase tracking-[0.2em] text-sky-300">Cach app van hanh</div>
-          <div className="mt-3 text-2xl font-semibold">3 buoc de ra quyet dinh sua content</div>
+          <div className="text-sm uppercase tracking-[0.2em] text-sky-300">Cách ứng dụng vận hành</div>
+          <div className="mt-3 text-2xl font-semibold">3 bước để ra quyết định sửa nội dung</div>
           <div className="mt-6 space-y-4">
             {[
               {
                 icon: Link2,
-                title: "1. Chon category",
-                description: "Policy checklist thay doi theo loai san pham, khong review chung chung.",
+                title: "1. Chọn danh mục",
+                description: "Checklist chính sách thay đổi theo loại sản phẩm, không kiểm duyệt chung chung.",
               },
               {
                 icon: Globe,
-                title: "2. Quet page",
-                description: "Lay title, meta, H1 va noi dung thuc de danh gia rui ro.",
+                title: "2. Quét trang",
+                description: "Lấy title, meta, H1 và nội dung thực để đánh giá rủi ro.",
               },
               {
                 icon: ShieldCheck,
-                title: "3. Uu tien sua",
-                description: "Bao cao tra ve severity, score va danh sach viec can lam ngay.",
+                title: "3. Ưu tiên sửa",
+                description: "Báo cáo trả về mức độ nghiêm trọng, điểm số và danh sách việc cần làm ngay.",
               },
             ].map((item) => (
               <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -255,15 +255,15 @@ export default function HomePage() {
         <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-sky-100/40 backdrop-blur-xl">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Task-first input</div>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Bat dau mot audit moi</h2>
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Đầu vào ưu tiên tác vụ</div>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Bắt đầu một lượt kiểm duyệt mới</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Form nay duoc toi uu cho mot action duy nhat: nhap URL dung, chon policy dung, va chay audit khong bi loang.
+                Biểu mẫu này được tối ưu cho một hành động duy nhất: nhập đúng URL, chọn đúng chính sách và chạy kiểm duyệt không bị loãng.
               </p>
             </div>
 
             <Link href="/history" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary">
-              Lich su
+              Lịch sử
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -274,10 +274,10 @@ export default function HomePage() {
                 URL bai viet / landing page
               </label>
               <div className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-slate-50/70 p-4 md:flex-row md:items-center">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm">
-                  <Globe className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm">
+                <Globe className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
                   <input
                     id="url-input"
                     type="url"
@@ -286,14 +286,14 @@ export default function HomePage() {
                     placeholder="https://example.com/san-pham/..."
                     required
                     data-testid="input-url"
-                    className="w-full bg-transparent text-base outline-none placeholder:text-slate-400"
-                  />
-                  <div className="mt-1 text-sm text-slate-500">
-                    {urlPreview
+                  className="w-full bg-transparent text-base outline-none placeholder:text-slate-400"
+                />
+                <div className="mt-1 text-sm text-slate-500">
+                  {urlPreview
                       ? `${urlPreview.protocol} · ${urlPreview.hostname} · ${urlPreview.pathname}`
-                      : "Nhap URL cong khai de he thong tai noi dung va phan tich."}
-                  </div>
+                      : "Nhập URL công khai để hệ thống tải nội dung và phân tích."}
                 </div>
+              </div>
                 <a
                   href={url || "#"}
                   target="_blank"
@@ -301,7 +301,7 @@ export default function HomePage() {
                   className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition-colors hover:border-primary hover:text-primary ${
                     !urlPreview ? "pointer-events-none opacity-50" : ""
                   }`}
-                  title="Mo link"
+                  title="Mở liên kết"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </a>
@@ -309,7 +309,7 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-slate-800">Danh muc san pham</label>
+              <label className="block text-sm font-medium text-slate-800">Danh mục sản phẩm</label>
               <div className="grid gap-3 md:grid-cols-2">
                 {categories?.map((category) => {
                   const isSelected = selectedCategoryId === category.id;
@@ -358,7 +358,7 @@ export default function HomePage() {
 
             <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 md:flex-row md:items-center md:justify-between">
               <div className="text-sm leading-6 text-slate-500">
-                Server key duoc cau hinh tai backend qua <code className="rounded bg-slate-100 px-1.5 py-0.5">OPENAI_API_KEY</code>.
+                API key được cấu hình ở backend qua <code className="rounded bg-slate-100 px-1.5 py-0.5">OPENAI_API_KEY</code>.
               </div>
 
               <button
@@ -370,11 +370,11 @@ export default function HomePage() {
                 {isAnalyzing ? (
                   <>
                     <LoaderCircle className="h-4 w-4 animate-spin" />
-                    Dang phan tich
+                    Đang phân tích
                   </>
                 ) : (
                   <>
-                    Chay audit ngay
+                    Chạy kiểm duyệt ngay
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -387,33 +387,33 @@ export default function HomePage() {
           <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-emerald-100/40 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Live context</div>
-                <h3 className="mt-2 text-xl font-semibold text-slate-950">Preview truoc khi chay</h3>
+                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Ngữ cảnh trực tiếp</div>
+                <h3 className="mt-2 text-xl font-semibold text-slate-950">Xem trước trước khi chạy</h3>
               </div>
               {selectedCategory && <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">{selectedCategory.icon} {selectedCategory.name}</span>}
             </div>
 
             <div className="mt-6 grid gap-4">
               <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Domain preview</div>
-                <div className="mt-2 text-lg font-medium text-slate-950">{urlPreview?.hostname ?? "Chua co domain hop le"}</div>
-                <div className="mt-1 text-sm text-slate-500">{urlPreview?.pathname ?? "Nhap URL de kiem tra du lieu nguon."}</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Tên miền</div>
+                <div className="mt-2 text-lg font-medium text-slate-950">{urlPreview?.hostname ?? "Chưa có tên miền hợp lệ"}</div>
+                <div className="mt-1 text-sm text-slate-500">{urlPreview?.pathname ?? "Nhập URL để kiểm tra dữ liệu nguồn."}</div>
               </div>
 
               <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Policy focus</div>
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Trọng tâm chính sách</div>
                 <div className="mt-2 text-sm leading-6 text-slate-600">
                   {selectedCategory
                     ? selectedCategory.guidelines.split("\n").filter(Boolean).slice(0, 3).join(" ")
-                    : "Chon category de hien thi bo guideline duoc dung trong prompt."}
+                    : "Chọn danh mục để hiển thị bộ hướng dẫn được dùng trong ngữ cảnh phân tích của AI."}
                 </div>
               </div>
             </div>
           </div>
 
           <div className="rounded-[2rem] border border-slate-200/80 bg-slate-950 p-6 text-white shadow-lg shadow-slate-200/70">
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Tien do audit</div>
-            <div className="mt-2 text-xl font-semibold">Mot luong, bon checkpoint</div>
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Tiến độ kiểm duyệt</div>
+            <div className="mt-2 text-xl font-semibold">Một luồng, bốn checkpoint</div>
             <div className="mt-6 space-y-3">
               {STEPS.map((step, index) => {
                 const isDone = progressIndex > index + 1;
@@ -456,18 +456,18 @@ export default function HomePage() {
       <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60 backdrop-blur-xl">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div>
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Recent output</div>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Nhin nhanh 5 audit gan day</h2>
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Đầu ra gần đây</div>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Xem nhanh 5 lượt kiểm duyệt gần đây</h2>
           </div>
           <Link href="/history" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-primary hover:text-primary">
-            Mo lich su
+            Mở lịch sử
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
         {!reviews || reviews.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50/80 p-10 text-center text-sm text-slate-500">
-            Chua co audit nao. Nhap URL dau tien de bat dau.
+            Chưa có lượt kiểm duyệt nào. Hãy nhập URL đầu tiên để bắt đầu.
           </div>
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">
@@ -483,7 +483,7 @@ export default function HomePage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-slate-900">{review.categoryName ?? "Chua gan category"}</div>
+                      <div className="text-sm font-medium text-slate-900">{review.categoryName ?? "Chưa gán danh mục"}</div>
                       <div className="mt-1 truncate text-sm text-slate-500">{review.url}</div>
                     </div>
                     <ReviewStatusBadge status={review.status} />
@@ -494,7 +494,7 @@ export default function HomePage() {
                       {[
                         { label: "SEO", value: result.seoScore },
                         { label: "Ads", value: result.adsScore },
-                        { label: "Tong", value: result.overallScore },
+                        { label: "Tổng", value: result.overallScore },
                       ].map((item) => (
                         <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-3 text-center">
                           <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{item.label}</div>

@@ -32,10 +32,10 @@ interface ReviewIssue {
 }
 
 const SEVERITY_CONFIG: Record<IssueSeverity, { label: string; tone: string; icon: typeof AlertCircle }> = {
-  critical: { label: "Nghiem trong", tone: "border-rose-200 bg-rose-50 text-rose-700", icon: AlertCircle },
-  major: { label: "Quan trong", tone: "border-amber-200 bg-amber-50 text-amber-700", icon: AlertTriangle },
-  minor: { label: "Nho", tone: "border-yellow-200 bg-yellow-50 text-yellow-700", icon: Info },
-  suggestion: { label: "Goi y", tone: "border-sky-200 bg-sky-50 text-sky-700", icon: Lightbulb },
+  critical: { label: "Nghiêm trọng", tone: "border-rose-200 bg-rose-50 text-rose-700", icon: AlertCircle },
+  major: { label: "Quan trọng", tone: "border-amber-200 bg-amber-50 text-amber-700", icon: AlertTriangle },
+  minor: { label: "Nhỏ", tone: "border-yellow-200 bg-yellow-50 text-yellow-700", icon: Info },
+  suggestion: { label: "Gợi ý", tone: "border-sky-200 bg-sky-50 text-sky-700", icon: Lightbulb },
 };
 
 const TYPE_LABELS: Record<IssueType, string> = {
@@ -43,8 +43,8 @@ const TYPE_LABELS: Record<IssueType, string> = {
   google_ads: "Google Ads",
   google_shopping: "Google Shopping",
   gdn: "GDN",
-  content_quality: "Chat luong noi dung",
-  policy_violation: "Vi pham chinh sach",
+  content_quality: "Chất lượng nội dung",
+  policy_violation: "Vi phạm chính sách",
 };
 
 function ScoreCard({ score, label }: { score: number; label: string }) {
@@ -103,11 +103,11 @@ function IssueCard({ issue }: { issue: ReviewIssue }) {
         <div className="border-t border-current/10 px-4 pb-4 pt-4">
           <div className="grid gap-4 rounded-2xl bg-white/60 p-4 text-sm text-slate-700 md:grid-cols-2">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Van de</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Vấn đề</div>
               <p className="mt-2 leading-6">{issue.description}</p>
             </div>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Huong xu ly</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Hướng xử lý</div>
               <p className="mt-2 leading-6">{issue.recommendation}</p>
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function ReviewDetailPage() {
   const deleteReview = useDeleteReview();
 
   const handleDelete = async () => {
-    if (!confirm("Ban co chac muon xoa review nay?")) {
+    if (!confirm("Bạn có chắc muốn xóa lượt kiểm duyệt này?")) {
       return;
     }
 
@@ -158,13 +158,13 @@ export default function ReviewDetailPage() {
       <div className="mx-auto max-w-3xl px-4 py-14">
         <div className="rounded-[2rem] border border-white/70 bg-white/85 p-10 text-center shadow-lg shadow-slate-100/60">
           <AlertCircle className="mx-auto h-10 w-10 text-slate-400" />
-          <h1 className="mt-4 text-2xl font-semibold text-slate-950">Khong tim thay review</h1>
+          <h1 className="mt-4 text-2xl font-semibold text-slate-950">Không tìm thấy lượt kiểm duyệt</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            URL nay co the da bi xoa hoac id khong con hop le.
+            URL này có thể đã bị xóa hoặc mã định danh không còn hợp lệ.
           </p>
           <Link href="/" className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
             <ArrowLeft className="h-4 w-4" />
-            Quay ve trang chu
+            Quay về trang chủ
           </Link>
         </div>
       </div>
@@ -203,16 +203,16 @@ export default function ReviewDetailPage() {
           <div className="min-w-0">
             <Link href="/history" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-primary">
               <ArrowLeft className="h-4 w-4" />
-              Quay lai lich su
+              Quay lại lịch sử
             </Link>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <div className="text-3xl font-semibold text-slate-950">{review.categoryName ?? "Chua gan category"}</div>
+              <div className="text-3xl font-semibold text-slate-950">{review.categoryName ?? "Chưa gán danh mục"}</div>
               <ReviewStatusBadge status={review.status} />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
               <span className="truncate">{review.url}</span>
               <a href={review.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                Mo link
+                Mở liên kết
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
@@ -224,7 +224,7 @@ export default function ReviewDetailPage() {
             className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-100"
           >
             <Trash2 className="h-4 w-4" />
-            Xoa review
+            Xóa lượt kiểm duyệt
           </button>
         </div>
       </section>
@@ -232,9 +232,9 @@ export default function ReviewDetailPage() {
       {(review.status === "analyzing" || review.status === "pending") && (
         <section className="rounded-[2rem] border border-sky-200 bg-sky-50 p-8 text-center text-sky-700">
           <LoaderCircle className="mx-auto h-10 w-10 animate-spin" />
-          <h2 className="mt-4 text-xl font-semibold">Dang phan tich noi dung</h2>
+          <h2 className="mt-4 text-xl font-semibold">Đang phân tích nội dung</h2>
           <p className="mt-2 text-sm leading-6 text-sky-600">
-            Trang nay tu dong refresh de cap nhat ket qua khi AI hoan tat.
+            Trang này sẽ tự động làm mới để cập nhật kết quả khi AI hoàn tất.
           </p>
         </section>
       )}
@@ -242,9 +242,9 @@ export default function ReviewDetailPage() {
       {review.status === "failed" && (
         <section className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 text-center text-rose-700">
           <XCircle className="mx-auto h-10 w-10" />
-          <h2 className="mt-4 text-xl font-semibold">Phan tich that bai</h2>
+          <h2 className="mt-4 text-xl font-semibold">Phân tích thất bại</h2>
           <p className="mt-2 text-sm leading-6 text-rose-600">
-            Kiem tra lai URL, ket noi mang hoac key OpenAI trong env roi chay lai.
+            Hãy kiểm tra lại URL, kết nối mạng hoặc API key OpenAI trong env rồi chạy lại.
           </p>
         </section>
       )}
@@ -253,8 +253,8 @@ export default function ReviewDetailPage() {
         <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="space-y-6">
             <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60">
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Executive summary</div>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Tong ket nhanh</h2>
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Tóm tắt điều hành</div>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Tổng kết nhanh</h2>
               <p className="mt-4 text-sm leading-7 text-slate-600">{result.summary}</p>
             </div>
 
@@ -262,10 +262,10 @@ export default function ReviewDetailPage() {
               <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6">
                 <div className="flex items-center gap-3 text-amber-800">
                   <ShieldAlert className="h-5 w-5" />
-                  <h3 className="text-lg font-semibold">Muc uu tien cao</h3>
+                  <h3 className="text-lg font-semibold">Nhóm ưu tiên cao</h3>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-amber-700">
-                  Co {topPriorityIssues.length} issue critical/major. Nen xu ly nhom nay truoc khi toi uu chi tiet phan con lai.
+                  Có {topPriorityIssues.length} vấn đề ở mức nghiêm trọng hoặc quan trọng. Nên xử lý nhóm này trước khi tối ưu các phần còn lại.
                 </p>
               </div>
             )}
@@ -280,7 +280,7 @@ export default function ReviewDetailPage() {
                       <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
                         {TYPE_LABELS[type]}
                       </span>
-                      <span className="text-sm text-slate-500">{issues.length} issue</span>
+                      <span className="text-sm text-slate-500">{issues.length} vấn đề</span>
                     </div>
                     <div className="mt-4 space-y-3">
                       {issues
@@ -301,9 +301,9 @@ export default function ReviewDetailPage() {
 
           <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-[2rem] border border-slate-200/80 bg-slate-950 p-6 text-white shadow-lg shadow-slate-200/70">
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Scoreboard</div>
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Bảng điểm</div>
               <div className="mt-4 grid gap-3">
-                <ScoreCard score={result.overallScore} label="Tong the" />
+                <ScoreCard score={result.overallScore} label="Tổng thể" />
                 <div className="grid grid-cols-2 gap-3">
                   <ScoreCard score={result.seoScore} label="SEO" />
                   <ScoreCard score={result.adsScore} label="Ads" />
@@ -314,13 +314,13 @@ export default function ReviewDetailPage() {
             </div>
 
             <div className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-lg shadow-slate-100/60">
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Issue mix</div>
+              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary/80">Cơ cấu vấn đề</div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {[
-                  { label: "Critical", value: result.criticalCount, tone: "bg-rose-50 text-rose-700" },
-                  { label: "Major", value: result.majorCount, tone: "bg-amber-50 text-amber-700" },
-                  { label: "Minor", value: result.minorCount, tone: "bg-yellow-50 text-yellow-700" },
-                  { label: "Goi y", value: result.suggestionCount, tone: "bg-sky-50 text-sky-700" },
+                  { label: "Nghiêm trọng", value: result.criticalCount, tone: "bg-rose-50 text-rose-700" },
+                  { label: "Quan trọng", value: result.majorCount, tone: "bg-amber-50 text-amber-700" },
+                  { label: "Nhỏ", value: result.minorCount, tone: "bg-yellow-50 text-yellow-700" },
+                  { label: "Gợi ý", value: result.suggestionCount, tone: "bg-sky-50 text-sky-700" },
                 ].map((item) => (
                   <div key={item.label} className={`rounded-3xl px-4 py-4 text-center ${item.tone}`}>
                     <div className="text-[11px] uppercase tracking-[0.18em]">{item.label}</div>

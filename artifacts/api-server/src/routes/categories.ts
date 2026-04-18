@@ -178,8 +178,8 @@ router.get("/categories", async (req, res): Promise<void> => {
       res.json(existing);
     }
   } catch (err) {
-    req.log.error({ err }, "Failed to get categories");
-    res.status(500).json({ error: "Failed to get categories" });
+    req.log.error({ err }, "Không thể lấy danh sách danh mục");
+    res.status(500).json({ error: "Không thể lấy danh sách danh mục." });
   }
 });
 

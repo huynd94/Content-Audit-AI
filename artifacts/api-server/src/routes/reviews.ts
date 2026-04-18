@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-zod";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { appEnv } from "../lib/env";
+import { ensureAuditStorage } from "../lib/storage";
 import { createRateLimiter } from "../lib/rate-limit";
 import { assertHttpUrl, assertSafePublicHttpUrl } from "../lib/ssrf";
 
@@ -164,6 +165,7 @@ async function fetchUrlContent(targetUrl: URL): Promise<string> {
 
 router.get("/reviews/stats", async (req, res): Promise<void> => {
   try {
+    await ensureAuditStorage();
     const total = await db.select({ count: sql<number>`count(*)` }).from(reviewsTable);
     const completed = await db
       .select({ count: sql<number>`count(*)` })
@@ -219,6 +221,7 @@ router.get("/reviews", async (req, res): Promise<void> => {
   };
 
   try {
+    await ensureAuditStorage();
     const filters: SQL[] = [];
     const searchTerm = queryParams.q?.trim();
 
@@ -282,6 +285,7 @@ router.post("/reviews", createReviewRateLimiter, async (req, res): Promise<void>
   }
 
   try {
+    await ensureAuditStorage();
     assertHttpUrl(parsed.data.url);
 
     const [review] = await db
@@ -327,6 +331,7 @@ router.post("/reviews/analyze", analyzeReviewRateLimiter, async (req, res): Prom
   };
 
   try {
+    await ensureAuditStorage();
     const safeUrl = await assertSafePublicHttpUrl(url);
 
     await db
@@ -424,6 +429,7 @@ router.get("/reviews/:id", async (req, res): Promise<void> => {
   }
 
   try {
+    await ensureAuditStorage();
     const [review] = await db
       .select({
         id: reviewsTable.id,
@@ -462,6 +468,7 @@ router.delete("/reviews/:id", async (req, res): Promise<void> => {
   }
 
   try {
+    await ensureAuditStorage();
     const [deleted] = await db
       .delete(reviewsTable)
       .where(eq(reviewsTable.id, parsed.data.id))

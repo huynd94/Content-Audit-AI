@@ -315,7 +315,7 @@ export default function HomePage() {
             <div className="space-y-3">
               <label className="block text-sm font-medium text-slate-800">Danh mục sản phẩm</label>
               <p className="text-sm leading-6 text-slate-500">
-                Chọn đúng nhóm sản phẩm để checklist đánh giá bám sát chính sách và nội dung cần rà soát.
+                Chọn danh mục nào thì AI sẽ kiểm duyệt theo đúng tiêu chí của danh mục đó.
               </p>
               <div className="grid gap-3 md:grid-cols-2">
                 {isCategoriesLoading && Array.from({ length: 4 }).map((_, index) => (

@@ -1,15 +1,24 @@
 # Content Audit AI
 
-Ứng dụng kiểm duyệt landing page bằng AI theo từng danh mục sản phẩm. Người dùng nhập URL, chọn danh mục, hệ thống sẽ phân tích nội dung theo đúng checklist của danh mục đó và trả về điểm `SEO`, `Ads`, `Shopping`, `GDN`, `Tổng thể` cùng danh sách lỗi và hướng sửa.
+Content Audit AI là ứng dụng kiểm duyệt landing page và trang sản phẩm bằng AI, được thiết kế để giúp đội marketing, nội dung và vận hành rà soát nhanh chất lượng nội dung trước khi chạy quảng cáo hoặc tối ưu chuyển đổi. Hệ thống cho phép nhập URL, chọn đúng danh mục sản phẩm, sau đó phân tích trang theo checklist chuyên biệt của danh mục đó và trả về báo cáo có điểm số, mức độ ưu tiên và hướng xử lý cụ thể.
 
 ## 1. Ứng dụng này dùng để làm gì?
 
-Ứng dụng phù hợp khi bạn cần:
+Ứng dụng phù hợp khi bạn cần một công cụ kiểm duyệt nội dung tập trung, thay vì phải tự kiểm tra thủ công từng hạng mục SEO, chính sách quảng cáo và độ đầy đủ của trang đích.
+
+Các trường hợp sử dụng điển hình:
 
 - kiểm tra một landing page trước khi chạy quảng cáo
 - rà nội dung theo từng nhóm sản phẩm như mỹ phẩm, thực phẩm chức năng, máy massage
 - xem vấn đề nào cần sửa trước
 - lưu lịch sử kiểm duyệt để đối chiếu sau này
+
+Giá trị chính của ứng dụng:
+
+- giảm thời gian kiểm tra thủ công trước khi xuất bản hoặc chạy ads
+- chuẩn hóa tiêu chí review theo từng nhóm sản phẩm
+- giúp đội ngũ biết nên sửa gì trước, thay vì chỉ nhận một báo cáo chung chung
+- lưu lại lịch sử để theo dõi chất lượng nội dung theo thời gian
 
 Luồng làm việc:
 
@@ -20,11 +29,11 @@ Luồng làm việc:
 
 ## 2. Thành phần chính
 
-- `artifacts/content-reviewer`: giao diện người dùng
-- `artifacts/api-server`: API backend
-- `lib/db`: PostgreSQL + Drizzle
-- `docker-compose.yml`: chạy bằng Docker ở máy local
-- `docker-compose.production.yml`: chạy bằng Docker trên VPS
+- `artifacts/content-reviewer`: giao diện web cho người dùng nhập URL, chọn danh mục và xem báo cáo
+- `artifacts/api-server`: API backend xử lý kiểm duyệt, lưu dữ liệu và gọi OpenAI
+- `lib/db`: schema và truy cập PostgreSQL bằng Drizzle
+- `docker-compose.yml`: chạy local bằng Docker
+- `docker-compose.production.yml`: deploy production trên VPS bằng Docker Compose
 
 ## 3. Yêu cầu tối thiểu
 
@@ -196,7 +205,7 @@ Cài sẵn:
 ### Bước 2: Clone repo
 
 ```bash
-git clone --branch codex/remove-replit https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
+git clone https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
 cd /opt/content-audit-ai
 ```
 
@@ -276,7 +285,7 @@ Cách này dành cho người muốn tự quản lý Node.js và PostgreSQL trê
 ### Bước 2: Clone repo
 
 ```bash
-git clone --branch codex/remove-replit https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
+git clone https://github.com/huynd94/Content-Audit-AI.git /opt/content-audit-ai
 cd /opt/content-audit-ai
 ```
 

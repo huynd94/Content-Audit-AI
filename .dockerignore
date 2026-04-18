@@ -1,0 +1,15 @@
+.git
+.github
+.cache
+.local
+.env
+.env.*
+node_modules
+**/node_modules
+artifacts/content-reviewer/dist
+artifacts/mockup-sandbox/dist
+artifacts/api-server/dist
+coverage
+tmp
+out-tsc
+*.log

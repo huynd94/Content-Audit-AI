@@ -36,6 +36,8 @@ export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem)
  */
 export const ListReviewsQueryParams = zod.object({
   "categoryId": zod.coerce.number().nullish(),
+  "status": zod.enum(['pending', 'analyzing', 'completed', 'failed']).nullish(),
+  "q": zod.coerce.string().nullish(),
   "limit": zod.coerce.number().nullish()
 })
 

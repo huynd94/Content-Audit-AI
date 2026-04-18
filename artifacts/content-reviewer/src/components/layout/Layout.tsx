@@ -1,5 +1,5 @@
+import { ArrowUpRight, History, Home, ShieldCheck, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { BarChart3, History, Home, Shield } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,47 +14,73 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg text-foreground">
-            <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
-              <Shield className="w-4 h-4 text-primary-foreground" />
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.12),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.12),_transparent_28%),linear-gradient(180deg,_rgba(255,255,255,0.92),_rgba(248,250,252,0.94))]" />
+
+      <header className="sticky top-0 z-50 border-b border-white/70 bg-background/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-4 px-4">
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-sky-500/20">
+              <ShieldCheck className="h-5 w-5" />
             </div>
-            <span>ContentCheck AI</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-primary/80">
+                <Sparkles className="h-3.5 w-3.5" />
+                Content Audit AI
+              </div>
+              <div className="truncate text-sm text-muted-foreground">
+                Kiểm duyệt SEO, Ads, Shopping và GDN trong một luồng.
+              </div>
+            </div>
           </Link>
 
-          <nav className="flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = item.href === "/" ? location === "/" : location.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                  data-testid={`nav-${item.label}`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="flex items-center gap-2">
+            <nav className="hidden items-center gap-1 rounded-full border border-white/70 bg-white/75 p-1 shadow-sm md:flex">
+              {navItems.map((item) => {
+                const isActive = item.href === "/" ? location === "/" : location.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    data-testid={`nav-${item.label}`}
+                    className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {location !== "/" && (
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+              >
+                Kiểm duyệt mới
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="relative flex-1">{children}</main>
 
-      <footer className="border-t border-border py-4 text-center text-sm text-muted-foreground">
-        <div className="flex items-center justify-center gap-1">
-          <BarChart3 className="w-4 h-4" />
-          ContentCheck AI — Phân tích nội dung theo chuẩn Google SEO & Ads
+      <footer className="relative border-t border-white/70 bg-white/70 py-5 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            Content Audit AI giúp biến việc kiểm duyệt nội dung thành danh sách kiểm tra có thể hành động.
+          </div>
+          <div>
+            Tập trung vào URL, danh mục sản phẩm và thứ tự ưu tiên cần sửa.
+          </div>
         </div>
       </footer>
     </div>

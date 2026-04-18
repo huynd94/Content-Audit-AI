@@ -130,6 +130,14 @@ categoryId?: number | null;
 /**
  * @nullable
  */
+status?: ReviewStatus | null;
+/**
+ * @nullable
+ */
+q?: string | null;
+/**
+ * @nullable
+ */
 limit?: number | null;
 };
 

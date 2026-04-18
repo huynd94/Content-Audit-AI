@@ -217,8 +217,8 @@ export class ResponseParseError extends Error {
     requestInfo: { method: string; url: string },
   ) {
     super(
-      `Failed to parse response from ${requestInfo.method} ${response.url || requestInfo.url} ` +
-        `(${response.status} ${response.statusText}) as JSON`,
+      `Không thể phân tích phản hồi từ ${requestInfo.method} ${response.url || requestInfo.url} ` +
+        `(${response.status} ${response.statusText}) dưới dạng JSON.`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
 
@@ -314,8 +314,8 @@ async function parseSuccessBody(
     case "blob":
       if (typeof response.blob !== "function") {
         throw new TypeError(
-          "Blob responses are not supported in this runtime. " +
-            "Use responseType \"json\" or \"text\" instead.",
+          "Runtime hiện tại không hỗ trợ phản hồi kiểu Blob. " +
+            "Hãy dùng responseType \"json\" hoặc \"text\".",
         );
       }
       return response.blob();
@@ -332,7 +332,7 @@ export async function customFetch<T = unknown>(
   const method = resolveMethod(input, init.method);
 
   if (init.body != null && (method === "GET" || method === "HEAD")) {
-    throw new TypeError(`customFetch: ${method} requests cannot have a body.`);
+    throw new TypeError(`customFetch: yêu cầu ${method} không được phép có body.`);
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);

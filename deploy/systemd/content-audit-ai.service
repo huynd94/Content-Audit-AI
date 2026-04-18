@@ -1,0 +1,21 @@
+[Unit]
+Description=Content Audit AI application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/content-audit-ai
+EnvironmentFile=/opt/content-audit-ai/.env.production
+ExecStart=/usr/bin/node --enable-source-maps /opt/content-audit-ai/artifacts/api-server/dist/index.mjs
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
